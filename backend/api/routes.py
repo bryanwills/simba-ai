@@ -22,7 +22,7 @@ async def websocket_stream(websocket: WebSocket):
 
 @router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Hello World 2 "}
 
 @router.get("/routes")
 async def get_routes():
