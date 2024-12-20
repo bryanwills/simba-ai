@@ -1,13 +1,12 @@
 from langgraph.graph import END, StateGraph, START
-from .classes.state_class import State
 from langgraph.checkpoint.memory import MemorySaver
-import matplotlib.pyplot as plt
-from PIL import Image
-import io
-from .flow_functions import *
+
+from flow_functions import *
+from services.models.state_class import State
+
+
 from dotenv import load_dotenv
 load_dotenv() 
-
 workflow = StateGraph(State)
 
 
@@ -50,3 +49,6 @@ graph = workflow.compile(checkpointer=memory)
 # plt.imshow(image)
 # plt.axis('off')
 # plt.show()
+
+if __name__ == "__main__":
+    graph.invoke({"question": "What is the capital of France?"})
