@@ -57,7 +57,7 @@ def summary_writer(state):
     return {"documents": documents}
 
 
-def generate(state):
+async def generate(state):
     """
     Generate answer
 
@@ -73,8 +73,9 @@ def generate(state):
 
     # RAG generation
     rag_chain = RAGGenerator()
-    generation = rag_chain.invoke({"context": documents, "question": question})
-    return {"generation": generation}
+    async for chunk in rag_chain.invoke({"context": documents, "question": question}):
+        yield chunk
+    # return {"generation": generation}
 
 
 def grade_documents(state):
