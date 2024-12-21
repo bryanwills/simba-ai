@@ -1,10 +1,16 @@
 from langchain import hub
 from langchain_openai import ChatOpenAI
+from langchain.chains import LLMChain
 from langchain_core.output_parsers import StrOutputParser
+from langchain.memory import ChatMessageHistory
 from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
 import os
+from langchain.chains import ConversationChain
+from langchain.memory import ConversationBufferMemory
+from langchain.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableWithMessageHistory
 
 # Load environment variables from .env file
 load_dotenv()
@@ -14,6 +20,22 @@ class GenerationInput(BaseModel):
     context: List[str] = Field(..., description="The list of documents' content for the context")
     question: str = Field(..., description="The question that needs to be answered based on the context")
 
+
+# Define the prompt template with the correct variables
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant. Use the following context to answer questions:\n\n{context}"),
+    ("human", "{question}")
+])
+
+# Create the chain with matching memory keys
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    input_key="question",
+    return_messages=True
+)
+
+
+
 # Class implementation
 class RAGGenerator:
     def __init__(self, model_name: str = "gpt-4o", temperature: float = 0):
@@ -22,17 +44,25 @@ class RAGGenerator:
         
 
         # Pull the prompt from the hub
-        self.prompt = hub.pull("rlm/rag-prompt")
+        self.prompt = prompt
 
         # Initialize the language model
-        self.llm = ChatOpenAI(model_name=model_name, temperature=temperature, openai_api_key=openai_api_key, streaming=True)
+        self.llm = ChatOpenAI(
+                            model_name="gpt-4o",
+                            temperature=0, 
+                            openai_api_key=openai_api_key,
+                            streaming=True
+                            )
 
         
         # Output parser
         self.output_parser = StrOutputParser()
         
         # Chain the prompt, LLM, and output parser together
-        self.rag_chain = self.prompt | self.llm | self.output_parser
+        # self.rag_chain = self.prompt | self.llm | self.output_parser
+        # Initialize the conversation chain with correct configuration
+        
+        
 
     @staticmethod
     def format_docs(docs: List[str]) -> str:
@@ -41,25 +71,33 @@ class RAGGenerator:
         """
         return "\n\n".join(docs)
 
-    def invoke(self, input_data: dict) -> str:
+    async def invoke(self, input_data: dict):
         """
         Run the RAG generation process.
         """
-        context=input_data.get('context')
-        question=input_data.get('question')
-        # Format the documents
-       
-        # Extracting page_content from the documents
-        page_contents = [doc.page_content for doc in context]
-
-        # Formatting the contents
+        context = input_data.get('context', [])
+        question = input_data.get('question', '')
+        
+        if hasattr(context, 'page_content'):
+            page_contents = [context.page_content]
+        else:
+            page_contents = [doc.page_content for doc in context]
+            
         formatted_content = self.format_docs(page_contents)
 
+        chain = LLMChain(
+            llm=self.llm,
+            prompt=self.prompt,
+            memory=memory
+        )
+
+        inputs = {
+            "context": formatted_content,
+            "question": question
+        }
         
-        # Invoke the RAG chain
-        generation = self.rag_chain.invoke({"context": formatted_content, "question": question})
-        
-        return generation
+        async for chunk in chain.astream(inputs):
+            yield chunk
 
 # Example usage
 if __name__ == "__main__":
