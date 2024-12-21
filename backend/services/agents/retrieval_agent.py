@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
 import os
-from langchain_chroma import Chroma
+from langchain_community.vectorstores import FAISS  # Change this import
 from langchain_openai import OpenAIEmbeddings
 from langsmith import traceable
 
@@ -20,11 +20,11 @@ class Retrieval(BaseModel):
 
 class Retrieval:
     """
-    A class that retrieves similar documents based on embeddings using Chroma.
+    A class that retrieves similar documents based on embeddings using FAISS.
     """
     def __init__(self):
         """
-        Initialize the Chroma vector store and OpenAI API key.
+        Initialize the FAISS vector store and OpenAI API key.
         """
         self.openai_api_key = os.getenv('AS_OPENAI_API_KEY')
 
@@ -33,11 +33,10 @@ class Retrieval:
 
         
               
-        # Load the existing Chroma vector store from the persist directory
-        self.vectorstore = Chroma(
-            collection_name="rag-chroma",
-            embedding_function=OpenAIEmbeddings(openai_api_key=self.openai_api_key),
-            persist_directory="chroma_storage"
+        # Load the existing FAISS vector store from the persist directory
+        self.vectorstore = FAISS.load_local(
+            folder_path="faiss_index",  # Change this to your desired path
+            embeddings=OpenAIEmbeddings(openai_api_key=self.openai_api_key)
         )
 
         self.retriever = self.vectorstore.as_retriever()
