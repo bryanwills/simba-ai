@@ -1,3 +1,4 @@
+from langchain_chroma import Chroma
 from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
@@ -33,15 +34,15 @@ class Retrieval:
 
         
               
-        # Load the existing FAISS vector store from the persist directory
-        self.vectorstore = FAISS.load_local(
-            folder_path="faiss_index",  # Change this to your desired path
-            embeddings=OpenAIEmbeddings(openai_api_key=self.openai_api_key)
+        # Load the existing Chroma vector store from the persist directory
+        self.vectorstore = Chroma(
+            collection_name="rag-chroma",
+            embedding_function=OpenAIEmbeddings(openai_api_key=self.openai_api_key),
+            persist_directory="chroma_storage"
         )
 
         self.retriever = self.vectorstore.as_retriever()
 
-    @traceable(run_type="retriever")
     def invoke(self, user_query:str): 
         documents = self.retriever.invoke(user_query)
         return documents

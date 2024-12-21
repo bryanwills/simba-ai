@@ -1,10 +1,7 @@
 from langgraph.graph import END, StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
-
-from flow_functions import *
-from services.models.state_class import State
-
-
+from services.flow_functions import *
+from services.classes.state_class import State
 from dotenv import load_dotenv
 load_dotenv() 
 workflow = StateGraph(State)

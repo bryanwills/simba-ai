@@ -1,31 +1,18 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Body
-from fastapi.responses import StreamingResponse
-from langchain_core.messages import HumanMessage
-from pydantic import BaseModel
-import uvicorn
+
+from fastapi import APIRouter,Body
 from services.classes.state_class import State
 from services.flow_graph import graph
+from pydantic import BaseModel
+from fastapi.responses import StreamingResponse
 
-
-
-app = FastAPI()
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-)
+chat = APIRouter()    
 
 # request input format
 class Query(BaseModel):
     message: str
 
 
-@app.post("/chat")
+@chat.post("/chat")
 async def invoke_graph(query: Query = Body(...)):
     """Invoke the graph workflow with a message"""
 
@@ -56,16 +43,8 @@ async def invoke_graph(query: Query = Body(...)):
     return StreamingResponse(generate_response(), media_type="text/event-stream")
 
 
-@app.get("/health")
+@chat.get("/status")
 async def health():
     """Check the api is running"""
     return {"status": "🤙"}
     
-
-if __name__ == "__main__":
-    uvicorn.run(
-        "app:app",
-        host="localhost",
-        port=8000,
-        reload=True
-    )

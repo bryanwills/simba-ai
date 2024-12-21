@@ -31,7 +31,7 @@ def get_all_md_files_from_directory(folder_path):
 
 
 
-folder_path = "Markdown"
+folder_path = "markdown"
 urls= get_all_md_files_from_directory(folder_path)
 
 
