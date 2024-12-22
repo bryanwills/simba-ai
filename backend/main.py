@@ -8,9 +8,6 @@ load_dotenv()
 
 app = FastAPI()
 
-
-
-
 # Allow all origins
 app.add_middleware(
     CORSMiddleware,

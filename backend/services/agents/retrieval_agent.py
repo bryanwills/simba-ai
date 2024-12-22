@@ -1,4 +1,3 @@
-from langchain_chroma import Chroma
 from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
@@ -6,6 +5,9 @@ import os
 from langchain_community.vectorstores import FAISS  # Change this import
 from langchain_openai import OpenAIEmbeddings
 from langsmith import traceable
+import faiss
+from langchain_community.docstore.in_memory import InMemoryDocstore
+from langchain_community.vectorstores import FAISS
 
 # from agents.summary_writer_agent import DocumentsInput, SummaryWriter
 
@@ -27,22 +29,42 @@ class Retrieval:
         """
         Initialize the FAISS vector store and OpenAI API key.
         """
-        self.openai_api_key = os.getenv('AS_OPENAI_API_KEY')
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
 
         if not self.openai_api_key:
-            raise ValueError("OpenAI API key is missing. Please set the AS_OPENAI_API_KEY environment variable.")
+            raise ValueError("OpenAI API key is missing. Please set the OPENAI_API_KEY environment variable.")
 
+        print("---LOADING FAISS VECTOR STORE---")
+        # if fais_index folder is not present, create it
+        # we need to init faiss vector store
         
-              
-        # Load the existing Chroma vector store from the persist directory
-        self.vectorstore = Chroma(
-            collection_name="rag-chroma",
-            embedding_function=OpenAIEmbeddings(openai_api_key=self.openai_api_key),
-            persist_directory="chroma_storage"
-        )
+        if not os.path.exists("faiss_index"):
+            self.vectorstore = self.init_faiss_vector_store()
+        else:
+            print("---LOADING EXISTING FAISS VECTOR STORE---")
+            # Load the existing FAISS vector store from the persist directory
+            self.vectorstore = FAISS.load_local(
+                folder_path="faiss_index",
+                embeddings=OpenAIEmbeddings(openai_api_key=self.openai_api_key)
+            )
 
         self.retriever = self.vectorstore.as_retriever()
 
+    def init_faiss_vector_store(self):
+        embeddings = OpenAIEmbeddings(openai_api_key=self.openai_api_key)
+        index = faiss.IndexFlatL2(len(embeddings.embed_query("hello world")))
+
+        vector_store = FAISS(
+            embedding_function=embeddings,
+            index=index,
+            docstore=InMemoryDocstore(),
+            index_to_docstore_id={},
+        )
+
+        vector_store.save_local("faiss_index")
+        print("---FAISS VECTOR CREATED SUCCESSFULLY---")
+        return vector_store
+    
     def invoke(self, user_query:str): 
         documents = self.retriever.invoke(user_query)
         return documents
@@ -91,6 +113,7 @@ def usage():
     service = Retrieval()
     user_query = "liberis pro quel est le Tarif pour un contenu de 4 millions de dirhams pour une valeur de 12 million categorie B"
     documents=service.invoke(user_query)
+    print(documents)
     #response = service.invoke(user_query)
     #print(response)
 

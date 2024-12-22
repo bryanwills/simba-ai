@@ -1,4 +1,3 @@
-from chromadb import Documents
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
@@ -19,7 +18,7 @@ class RetrievalGrader:
 
         # Load environment variables from .env file
         load_dotenv()
-        self.openai_api_key = os.getenv('AS_OPENAI_API_KEY')
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
 
         if not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY environment variable not found. Please set it in the .env file.")
