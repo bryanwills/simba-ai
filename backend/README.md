@@ -30,3 +30,9 @@ This project uses Poetry for dependency management and requires Python >=3.11,< 
 ## Environment Variables
 
 Create a '.env' file in the root directory with your configuration.
+
+for unstructured , run the following command:
+
+```bash
+pip install unstructured
+```
