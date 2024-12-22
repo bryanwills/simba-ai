@@ -1,5 +1,5 @@
 
-import ChatApp from './components/ChatApp'
+import ChatApp from './pages/ChatApp'
 
 function App() {
   return (
