@@ -1,4 +1,3 @@
-from langchain_chroma import Chroma
 from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
@@ -6,6 +5,11 @@ import os
 from langchain_community.vectorstores import FAISS  # Change this import
 from langchain_openai import OpenAIEmbeddings
 from langsmith import traceable
+import faiss
+from langchain_community.docstore.in_memory import InMemoryDocstore
+from langchain_community.vectorstores import FAISS
+from services.agents.embedding_langchain import Embedding
+from core.config import settings
 
 # from agents.summary_writer_agent import DocumentsInput, SummaryWriter
 
@@ -27,22 +31,22 @@ class Retrieval:
         """
         Initialize the FAISS vector store and OpenAI API key.
         """
-        self.openai_api_key = os.getenv('AS_OPENAI_API_KEY')
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
 
         if not self.openai_api_key:
-            raise ValueError("OpenAI API key is missing. Please set the AS_OPENAI_API_KEY environment variable.")
+            raise ValueError("OpenAI API key is missing. Please set the OPENAI_API_KEY environment variable.")
 
+        self.embeddings = Embedding()
+        self.init_faiss_vector_store()
+
+    def init_faiss_vector_store(self):
+        # Create new vector store
+        doc_splits = self.embeddings.create_document_splits(settings.MARKDOWN_DIR)
+        vectorstore = self.embeddings.init_faiss_store(doc_splits)
         
-              
-        # Load the existing Chroma vector store from the persist directory
-        self.vectorstore = Chroma(
-            collection_name="rag-chroma",
-            embedding_function=OpenAIEmbeddings(openai_api_key=self.openai_api_key),
-            persist_directory="chroma_storage"
-        )
-
-        self.retriever = self.vectorstore.as_retriever()
-
+        # store the vector store
+        self.retriever = vectorstore.as_retriever()
+    
     def invoke(self, user_query:str): 
         documents = self.retriever.invoke(user_query)
         return documents
@@ -91,11 +95,7 @@ def usage():
     service = Retrieval()
     user_query = "liberis pro quel est le Tarif pour un contenu de 4 millions de dirhams pour une valeur de 12 million categorie B"
     documents=service.invoke(user_query)
-    #response = service.invoke(user_query)
-    #print(response)
-
-    print("-"*30)
-    # print(response[0].page_content)
+    print(documents)
 
 if __name__ == "__main__" :
     usage()

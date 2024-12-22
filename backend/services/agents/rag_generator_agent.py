@@ -14,7 +14,6 @@ from langchain_core.runnables import RunnableWithMessageHistory
 
 # Load environment variables from .env file
 load_dotenv()
-openai_api_key = os.getenv('AS_OPENAI_API_KEY')
 # Pydantic model for input data validation
 class GenerationInput(BaseModel):
     context: List[str] = Field(..., description="The list of documents' content for the context")
@@ -39,9 +38,6 @@ memory = ConversationBufferMemory(
 # Class implementation
 class RAGGenerator:
     def __init__(self, model_name: str = "gpt-4o", temperature: float = 0):
-        
-        
-        
 
         # Pull the prompt from the hub
         self.prompt = prompt
@@ -50,7 +46,7 @@ class RAGGenerator:
         self.llm = ChatOpenAI(
                             model_name="gpt-4o",
                             temperature=0, 
-                            openai_api_key=openai_api_key,
+                            openai_api_key=os.getenv('OPENAI_API_KEY'),
                             streaming=True
                             )
 
@@ -71,7 +67,7 @@ class RAGGenerator:
         """
         return "\n\n".join(docs)
 
-    async def invoke(self, input_data: dict):
+    def invoke(self, input_data: dict):
         """
         Run the RAG generation process.
         """
@@ -85,19 +81,14 @@ class RAGGenerator:
             
         formatted_content = self.format_docs(page_contents)
 
-        chain = LLMChain(
-            llm=self.llm,
-            prompt=self.prompt,
-            memory=memory
-        )
+        chain = prompt | self.llm
 
         inputs = {
             "context": formatted_content,
             "question": question
         }
         
-        async for chunk in chain.astream(inputs):
-            yield chunk
+        return chain.invoke(inputs)
 
 # Example usage
 if __name__ == "__main__":

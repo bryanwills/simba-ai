@@ -7,9 +7,8 @@ from langchain_core.output_parsers import StrOutputParser
 
 # Load environment variables from .env file
 load_dotenv()
-openai_api_key = os.getenv('AS_OPENAI_API_KEY')
 
-if not openai_api_key:
+if not os.getenv('OPENAI_API_KEY'):
     raise ValueError("OPENAI_API_KEY environment variable not found. Please set it in the .env file.")
 
 # Pydantic model to enforce input formatting
@@ -22,7 +21,7 @@ class QuestionInput(BaseModel):
 class QuestionRewriter:
     def __init__(self, model_name: str = "gpt-4o", temperature: float = 0):
         # Initialize the LLM with the correct model name
-        self.llm = ChatOpenAI(model_name=model_name, temperature=temperature, openai_api_key=openai_api_key, streaming=True)
+        self.llm = ChatOpenAI(model_name=model_name, temperature=temperature, openai_api_key=os.getenv('OPENAI_API_KEY'), streaming=True)
         
         # Prompt setup
         system_message = """You are a question re-writer that converts an input question to a better version optimized for web search.
