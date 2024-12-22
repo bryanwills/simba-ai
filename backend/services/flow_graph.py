@@ -3,6 +3,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from services.flow_functions import *
 from services.classes.state_class import State
 from dotenv import load_dotenv
+
+
 load_dotenv() 
 workflow = StateGraph(State)
 
@@ -37,7 +39,7 @@ workflow.add_edge("transform_query", END)
 
 
 # Compile
-graph = workflow.compile(checkpointer=memory)
+graph = workflow.compile()
 
 # Generate and display the graph as an image
 # image_bytes = graph.get_graph().draw_mermaid_png()
@@ -48,4 +50,4 @@ graph = workflow.compile(checkpointer=memory)
 # plt.show()
 
 if __name__ == "__main__":
-    graph.invoke({"question": "What is the capital of France?"})
+    print(graph.invoke({"question": "What is the capital of France?"}))
