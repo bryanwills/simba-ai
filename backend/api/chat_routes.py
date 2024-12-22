@@ -31,9 +31,10 @@ async def invoke_graph(query: Query = Body(...)):
                 version="v1",
                 config=config
             ):
+                
                 if event["event"] == "on_chat_model_stream":
-                    token = event["data"]["chunk"].content
-                    yield token
+                    chunk = event["data"]["chunk"].content
+                    yield chunk
            
         except Exception as e:
             yield f"Error: {str(e)}"
