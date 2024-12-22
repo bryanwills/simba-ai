@@ -1,4 +1,5 @@
 
+import json
 from fastapi import APIRouter,Body
 from services.classes.state_class import State
 from services.flow_graph import graph
@@ -28,13 +29,41 @@ async def invoke_graph(query: Query = Body(...)):
             
             async for event in graph.astream_events(
                 state,
-                version="v1",
-                config=config
+                version="v2", 
+                config=config,
+                
             ):
                 
-                if event["event"] == "on_chat_model_stream":
+                # Access the metadata field
+                metadata = event.get("metadata", {})
+                event_type = event.get("event")
+                key=metadata.get("langgraph_node")
+                
+
+                if event_type == "on_chat_model_start":      
+                    yield json.dumps({
+                        "status": "start",
+                        "node": key,
+                        "details": "Node stream started"
+                    }) + "\n"
+                    
+                # Emit raw data for the streaming events
+                elif event_type == "on_chat_model_stream":
                     chunk = event["data"]["chunk"].content
-                    yield chunk
+                    yield chunk  # Send only the raw data
+
+                # Emit end of the node stream as a JSON object
+                elif event_type == "on_chat_model_end":
+                    yield json.dumps({
+                        "status": "end",
+                        "node": key,
+                        "details": "Node stream ended"
+                    }) + "\n"
+                    
+                
+                # if event["event"] == "on_chat_model_stream":
+                #     chunk = event["data"]["chunk"].content
+                #     yield chunk
            
         except Exception as e:
             yield f"Error: {str(e)}"

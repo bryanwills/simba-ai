@@ -19,12 +19,6 @@ class GenerationInput(BaseModel):
     question: str = Field(..., description="The question that needs to be answered based on the context")
 
 
-# Define the prompt template with the correct variables
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant. Use the following context to answer questions:\n\n{context}"),
-    ("human", "{question}")
-])
-
 # Create the chain with matching memory keys
 memory = ConversationBufferMemory(
     memory_key="chat_history",
@@ -38,6 +32,14 @@ memory = ConversationBufferMemory(
 class RAGGenerator:
     def __init__(self, model_name: str = "gpt-4o", temperature: float = 0):
 
+
+        # Define the prompt template with the correct variables
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a helpful assistant. Use the following context to answer questions:\n\n{context}"),
+            ("human", "{question}")
+        ])
+
+        
         # Pull the prompt from the hub
         self.prompt = prompt
 
@@ -80,7 +82,7 @@ class RAGGenerator:
             
         formatted_content = self.format_docs(page_contents)
 
-        chain = prompt | self.llm
+        chain = self.prompt | self.llm
 
         inputs = {
             "context": formatted_content,
@@ -89,9 +91,9 @@ class RAGGenerator:
         
         return chain.invoke(inputs)
     
-    async def astream(self, input_data: dict, callbacks=None):
+    async def astream(self, input_data: dict):
         """
-        Run the RAG generation process asynchronously with streaming.
+        Stream the RAG generation process asynchronously.
         """
         context = input_data.get('context', [])
         question = input_data.get('question', '')
@@ -103,16 +105,21 @@ class RAGGenerator:
             
         formatted_content = self.format_docs(page_contents)
 
-        chain = prompt | self.llm
+        chain = self.prompt | self.llm
 
         inputs = {
             "context": formatted_content,
             "question": question
         }
-
-        async for chunk in chain.astream(inputs, callbacks=callbacks):
-            yield chunk
-
+        
+        async for chunk in chain.astream(inputs):
+            response_data = {
+                "generation": chunk
+            }
+            yield response_data
+    
+    
+   
 # Example usage
 if __name__ == "__main__":
     # Example documents and question
