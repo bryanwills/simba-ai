@@ -44,6 +44,8 @@ class Embedding:
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
             chunk_size=500, chunk_overlap=50
         )
+        doc_splits = text_splitter.split_documents(docs_list)
+        
         return docs_list
 
     def init_faiss_store(self, doc_splits, save_path=None):
