@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bot, Send, Trash2 } from 'lucide-react';
-import ChatMessage from './ChatMessage';
+import ChatMessage from '../components/ChatMessage';
 import { config } from '@/config';
 import { sendMessage } from '@/lib/api';
 
@@ -12,6 +12,13 @@ interface Message {
   text: string;
   isAi: boolean;
   streaming?: boolean;
+  followUpQuestions?: string[];
+}
+
+interface StreamMarker {
+  status: "start" | "end";
+  node: string;
+  details: string;
 }
 
 const ChatApp: React.FC = () => {
@@ -55,55 +62,97 @@ const ChatApp: React.FC = () => {
         }),
       });
 
-      if (!response.ok) {
+      if (!response.ok || !response.body) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      if (!response.body) {
-        throw new Error('No response body');
-      }
-
-      // Add initial bot message
-      const botMessageId = `bot-${timestamp}`;
-      setMessages(prev => [...prev, {
-        id: botMessageId,
-        text: '',
-        isAi: true,
-        streaming: true
-      }]);
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let currentResponse = '';
+      let currentQuestions = '';
+      let streamStarted = false;
+      let questionsStreamStarted = false;
+      let botMessageId = '';
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
         
         const chunk = decoder.decode(value);
-        currentResponse += chunk;
-
-        // Update the bot's streaming response
-        setMessages(prev => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage && lastMessage.id === botMessageId) {
-            lastMessage.text = currentResponse;
-            lastMessage.streaming = true;
+        console.log('Received chunk:', chunk); // Debug log
+        
+        try {
+          const marker = JSON.parse(chunk) as StreamMarker;
+          
+          if (marker.status === "start" && marker.node === "generate") {
+            botMessageId = `bot-${timestamp}`;
+            streamStarted = true;
+            setMessages(prev => [...prev, {
+              id: botMessageId,
+              text: '',
+              isAi: true,
+              streaming: true,
+              followUpQuestions: [] // Initialize empty array
+            }]);
+            continue;
           }
-          return [...newMessages];
-        });
-      }
+          
+          if (marker.status === "start" && marker.node === "transform_query") {
+            questionsStreamStarted = true;
+            currentQuestions = ''; // Reset questions buffer
+            // Show loading state for questions
+            setMessages(prev => {
+              const newMessages = [...prev];
+              const lastMessage = newMessages[newMessages.length - 1];
+              if (lastMessage && lastMessage.id === botMessageId) {
+                lastMessage.followUpQuestions = ['...'];
+                lastMessage.streaming = true;
+              }
+              return [...newMessages];
+            });
+            continue;
+          }
 
-      // Mark message as complete
-      setMessages(prev => {
-        const newMessages = [...prev];
-        const lastMessage = newMessages[newMessages.length - 1];
-        if (lastMessage && lastMessage.id === botMessageId) {
-          lastMessage.streaming = false;
+          if (marker.status === "end" && marker.node === "transform_query") {
+            // Split the questions text into an array
+            const questions = currentQuestions
+              .split('\n')
+              .map(q => q.trim())
+              .filter(q => q.length > 0);
+
+            console.log('Parsed questions:', questions); // Debug log
+            
+            setMessages(prev => {
+              const newMessages = [...prev];
+              const lastMessage = newMessages[newMessages.length - 1];
+              if (lastMessage && lastMessage.id === botMessageId) {
+                lastMessage.followUpQuestions = questions;
+                lastMessage.streaming = false;
+              }
+              return [...newMessages];
+            });
+            
+            questionsStreamStarted = false;
+            continue;
+          }
+
+        } catch (parseError) {
+          // Not a JSON marker, treat as content
+          if (streamStarted && !questionsStreamStarted) {
+            currentResponse += chunk;
+            setMessages(prev => {
+              const newMessages = [...prev];
+              const lastMessage = newMessages[newMessages.length - 1];
+              if (lastMessage && lastMessage.id === botMessageId) {
+                lastMessage.text = currentResponse;
+              }
+              return [...newMessages];
+            });
+          } else if (questionsStreamStarted) {
+            currentQuestions += chunk;
+          }
         }
-        return [...newMessages];
-      });
+      }
 
     } catch (error) {
       console.error('Error:', error);
@@ -120,6 +169,12 @@ const ChatApp: React.FC = () => {
 
   const clearConversation = () => {
     setMessages([]);
+  };
+
+  const handleFollowUpClick = (question: string) => {
+    setInputMessage(question);
+    const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+    handleSubmit(fakeEvent);
   };
 
   return (
@@ -153,6 +208,8 @@ const ChatApp: React.FC = () => {
                 isAi={message.isAi}
                 message={message.text}
                 streaming={message.streaming}
+                followUpQuestions={message.followUpQuestions}
+                onFollowUpClick={handleFollowUpClick}
               />
             ))}
             <div ref={messagesEndRef} />
