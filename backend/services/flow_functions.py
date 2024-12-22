@@ -57,7 +57,7 @@ def summary_writer(state):
     return {"documents": documents}
 
 
-async def generate(state):
+def generate(state):
     """
     Generate answer
 
@@ -73,11 +73,11 @@ async def generate(state):
 
     # RAG generation
     rag_chain = RAGGenerator()
-    # generation = rag_chain.invoke({"context": documents, "question": question})
-    # return {"generation": generation}
+    generation = rag_chain.invoke({"context": documents, "question": question})
+    return {"generation": generation}
 
-    async for chunk in rag_chain.astream({"context": documents, "question": question}):
-        yield chunk
+    # async for chunk in rag_chain.astream({"context": documents, "question": question}):
+    #     yield chunk
 
 
 def grade_documents(state):
@@ -112,11 +112,12 @@ def grade_documents(state):
             print("---GRADE: DOCUMENT NOT RELEVANT---")
             # web_search = "Yes"
             continue
+    
     return {"documents": filtered_docs, "question": question, "filenames" : filenames, "web_search": web_search}
     
 
 
-def transform_query(state):
+def question_writer(state):
     """
     Transform the query to produce a better question.
 

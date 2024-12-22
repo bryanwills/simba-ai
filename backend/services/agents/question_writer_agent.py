@@ -31,7 +31,7 @@ class QuestionRewriter:
         
         """
         
-        self.re_write_prompt = ChatPromptTemplate.from_messages(
+        self.prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", system_message),
                 (
@@ -65,6 +65,8 @@ class QuestionRewriter:
         # rewritten_question = question_rewriter.invoke({"question": input_data.question})
 
         return question_list
+    
+     
     
     def extract_questions_from_markdown(self, file_path, user_question):
         """
@@ -116,6 +118,9 @@ class QuestionRewriter:
         questions = response.strip().split('\n')
             
         return [q for q in questions if q.strip()]
+
+             
+            
 
 
 
