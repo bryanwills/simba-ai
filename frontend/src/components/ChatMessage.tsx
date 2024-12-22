@@ -5,9 +5,10 @@ import { Bot, User } from 'lucide-react';
 interface ChatMessageProps {
   isAi: boolean;
   message: string;
+  streaming?: boolean;
 }
 
-const ChatMessage = ({ isAi, message }: ChatMessageProps) => {
+const ChatMessage = ({ isAi, message, streaming }: ChatMessageProps) => {
   return (
     <div className={cn("flex items-start space-x-2", isAi ? "flex-row" : "flex-row-reverse space-x-reverse")}>
       <div className={cn(
@@ -22,9 +23,10 @@ const ChatMessage = ({ isAi, message }: ChatMessageProps) => {
       </div>
       <div className={cn(
         "rounded-lg px-3 py-2 sm:px-4 sm:py-2 max-w-[85%] shadow-sm text-sm sm:text-base",
-        isAi ? "bg-white" : "bg-blue-500 text-white"
+        isAi ? "bg-white" : "bg-blue-500 text-white",
+        streaming && "animate-pulse"
       )}>
-        {message}
+        {message || '...'}
       </div>
     </div>
   );

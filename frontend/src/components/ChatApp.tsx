@@ -11,6 +11,7 @@ interface Message {
   id: string;
   text: string;
   isAi: boolean;
+  streaming?: boolean;
 }
 
 const ChatApp: React.FC = () => {
@@ -31,9 +32,11 @@ const ChatApp: React.FC = () => {
     e.preventDefault();
     if (!inputMessage.trim() || isLoading) return;
 
+    const timestamp = Date.now();
+    
     // Add user message
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `user-${timestamp}`,
       text: inputMessage.trim(),
       isAi: false,
     };
@@ -42,25 +45,74 @@ const ChatApp: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Send message to API and get response
-      const response = await sendMessage(userMessage.text);
-      
-      // Add AI response
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: response.message || 'Sorry, I could not process your request.',
+      const response = await fetch(`${config.apiUrl}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage.text
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('No response body');
+      }
+
+      // Add initial bot message
+      const botMessageId = `bot-${timestamp}`;
+      setMessages(prev => [...prev, {
+        id: botMessageId,
+        text: '',
         isAi: true,
-      };
-      setMessages(prev => [...prev, aiMessage]);
+        streaming: true
+      }]);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let currentResponse = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        currentResponse += chunk;
+
+        // Update the bot's streaming response
+        setMessages(prev => {
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (lastMessage && lastMessage.id === botMessageId) {
+            lastMessage.text = currentResponse;
+            lastMessage.streaming = true;
+          }
+          return [...newMessages];
+        });
+      }
+
+      // Mark message as complete
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage && lastMessage.id === botMessageId) {
+          lastMessage.streaming = false;
+        }
+        return [...newMessages];
+      });
+
     } catch (error) {
-      // Handle error
+      console.error('Error:', error);
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: `error-${Date.now()}`,
         text: 'Sorry, something went wrong. Please try again.',
         isAi: true,
       };
       setMessages(prev => [...prev, errorMessage]);
-      console.error('Error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -100,18 +152,9 @@ const ChatApp: React.FC = () => {
                 key={message.id}
                 isAi={message.isAi}
                 message={message.text}
+                streaming={message.streaming}
               />
             ))}
-            {isLoading && (
-              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500">
-                <div className="flex space-x-1">
-                  <div className="animate-bounce">.</div>
-                  <div className="animate-bounce delay-100">.</div>
-                  <div className="animate-bounce delay-200">.</div>
-                </div>
-                <span>MigiBot is typing</span>
-              </div>
-            )}
             <div ref={messagesEndRef} />
           </div>
         </CardContent>

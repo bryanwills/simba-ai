@@ -7,9 +7,8 @@ from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
 import os
-from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableWithMessageHistory
 
 # Load environment variables from .env file
@@ -89,6 +88,30 @@ class RAGGenerator:
         }
         
         return chain.invoke(inputs)
+    
+    async def astream(self, input_data: dict, callbacks=None):
+        """
+        Run the RAG generation process asynchronously with streaming.
+        """
+        context = input_data.get('context', [])
+        question = input_data.get('question', '')
+        
+        if hasattr(context, 'page_content'):
+            page_contents = [context.page_content]
+        else:
+            page_contents = [doc.page_content for doc in context]
+            
+        formatted_content = self.format_docs(page_contents)
+
+        chain = prompt | self.llm
+
+        inputs = {
+            "context": formatted_content,
+            "question": question
+        }
+
+        async for chunk in chain.astream(inputs, callbacks=callbacks):
+            yield chunk
 
 # Example usage
 if __name__ == "__main__":
