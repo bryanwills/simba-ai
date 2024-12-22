@@ -14,7 +14,6 @@ from langchain_core.runnables import RunnableWithMessageHistory
 
 # Load environment variables from .env file
 load_dotenv()
-openai_api_key = os.getenv('AS_OPENAI_API_KEY')
 # Pydantic model for input data validation
 class GenerationInput(BaseModel):
     context: List[str] = Field(..., description="The list of documents' content for the context")
@@ -50,7 +49,7 @@ class RAGGenerator:
         self.llm = ChatOpenAI(
                             model_name="gpt-4o",
                             temperature=0, 
-                            openai_api_key=openai_api_key,
+                            openai_api_key=os.getenv('OPENAI_API_KEY'),
                             streaming=True
                             )
 
