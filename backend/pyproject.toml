@@ -5,6 +5,7 @@ description = "RAG Based Agent for insurance"
 authors = ["GitHamza0206 <zeroualihamza0206@gmail.com>"]
 readme = "README.md"
 packages = [{include = "services"}]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11,<3.13"
