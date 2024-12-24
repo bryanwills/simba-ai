@@ -1,17 +1,23 @@
-# Development stage
-FROM node:18-alpine
+FROM node:18-slim
 
 WORKDIR /app
 
-# Install dependencies
+# Install necessary build tools
+RUN apt-get update && \
+    apt-get install -y python3 make g++ && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy package files
 COPY package*.json ./
-RUN npm install
+
+# Clean install with specific platform
+RUN rm -rf node_modules package-lock.json && \
+    npm install --platform=linux --arch=x64 && \
+    npm install @rollup/rollup-linux-x64-gnu
 
 # Copy source code
 COPY . .
 
-# Expose port 5173 (Vite's default dev server port)
 EXPOSE 5173
 
-# Start development server with host set to allow external connections
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
