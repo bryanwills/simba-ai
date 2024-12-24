@@ -6,6 +6,7 @@ from services.agents.rag_generator_agent import RAGGenerator
 from services.agents.grader_agent import RetrievalGrader
 from services.agents.question_writer_agent import QuestionInput, QuestionRewriter
 from services.agents.web_search_agent import TavilySearchTool
+from .agents.react_agent import process_message
 
 
 def retrieve(state):
@@ -57,27 +58,12 @@ def summary_writer(state):
     return {"documents": documents}
 
 
-def generate(state):
-    """
-    Generate answer
-
-    Args:
-        state (dict): The current graph state
-
-    Returns:
-        state (dict): New key added to state, generation, that contains LLM generation
-    """
-    print("---GENERATE---")
-    question = state["question"]
-    documents = state["documents"]
-
-    # RAG generation
-    rag_chain = RAGGenerator()
-    generation = rag_chain.invoke({"context": documents, "question": question})
-    return {"generation": generation}
-
-    # async for chunk in rag_chain.astream({"context": documents, "question": question}):
-    #     yield chunk
+async def generate(state):
+    """Generate a response using the React agent"""
+    message = state["question"]
+    response = await process_message(message)
+    state["messages"].append(("assistant", response))
+    return state
 
 
 def grade_documents(state):
