@@ -1,15 +1,11 @@
-from langchain import hub
 from langchain_openai import ChatOpenAI
-from langchain.chains import LLMChain
 from langchain_core.output_parsers import StrOutputParser
-from langchain.memory import ChatMessageHistory
 from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
 import os
 from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableWithMessageHistory
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,14 +13,6 @@ load_dotenv()
 class GenerationInput(BaseModel):
     context: List[str] = Field(..., description="The list of documents' content for the context")
     question: str = Field(..., description="The question that needs to be answered based on the context")
-
-
-# Create the chain with matching memory keys
-memory = ConversationBufferMemory(
-    memory_key="chat_history",
-    input_key="question",
-    return_messages=True
-)
 
 
 
