@@ -35,8 +35,8 @@ class RAGGenerator:
 
         # Define the prompt template with the correct variables
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a helpful assistant. Use the following context to answer questions:\n\n{context}"),
-            ("human", "{question}")
+            ("system", "You are a helpful assistant. Use the following context to answer questions. Consider the chat history to provide relevant and contextual responses:\n\n{context}"),
+            ("human", "{chat_history}\n\nQuestion: {question}")
         ])
 
         
@@ -74,6 +74,7 @@ class RAGGenerator:
         """
         context = input_data.get('context', [])
         question = input_data.get('question', '')
+        messages = input_data.get('messages', [])[:-1]
         
         if hasattr(context, 'page_content'):
             page_contents = [context.page_content]
@@ -86,37 +87,11 @@ class RAGGenerator:
 
         inputs = {
             "context": formatted_content,
-            "question": question
+            "question": question,
+            "chat_history": messages
         }
         
         return chain.invoke(inputs)
-    
-    async def astream(self, input_data: dict):
-        """
-        Stream the RAG generation process asynchronously.
-        """
-        context = input_data.get('context', [])
-        question = input_data.get('question', '')
-        
-        if hasattr(context, 'page_content'):
-            page_contents = [context.page_content]
-        else:
-            page_contents = [doc.page_content for doc in context]
-            
-        formatted_content = self.format_docs(page_contents)
-
-        chain = self.prompt | self.llm
-
-        inputs = {
-            "context": formatted_content,
-            "question": question
-        }
-        
-        async for chunk in chain.astream(inputs):
-            response_data = {
-                "generation": chunk
-            }
-            yield response_data
     
     
    
