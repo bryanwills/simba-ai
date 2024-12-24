@@ -22,26 +22,30 @@ const ChatMessage = ({
   onFollowUpClick 
 }: ChatMessageProps) => {
   return (
-    <div className={cn("flex items-start space-x-2", isAi ? "flex-row" : "flex-row-reverse space-x-reverse")}>
+    <div className={cn(
+      "flex gap-3",
+      isAi ? "flex-row" : "flex-row-reverse"
+    )}>
       <div className={cn(
-        "w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center",
+        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
         isAi ? "bg-blue-100" : "bg-gray-100"
       )}>
         {isAi ? (
-          <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
+          <Bot className="h-5 w-5 text-blue-500" />
         ) : (
-          <User className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+          <User className="h-5 w-5 text-gray-500" />
         )}
       </div>
-      <div className="flex flex-col flex-1">
+      <div className="flex-1 space-y-2">
         <div className={cn(
-          "rounded-lg px-3 py-2 sm:px-4 sm:py-2 max-w-[85%] shadow-sm text-sm sm:text-base",
+          "rounded-lg px-4 py-2 max-w-full",
           isAi ? "bg-white prose prose-sm max-w-none" : "bg-blue-500 text-white",
           streaming && "animate-pulse"
         )}>
           {isAi ? (
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkBreaks]}
+              className="overflow-x-auto"
               components={{
                 p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                 ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
@@ -62,14 +66,13 @@ const ChatMessage = ({
               {message || ''}
             </ReactMarkdown>
           ) : (
-            message
+            <p>{message}</p>
           )}
         </div>
         {isAi && followUpQuestions && (
           <FollowUpQuestions
             questions={followUpQuestions}
             onQuestionClick={onFollowUpClick!}
-            className="ml-0 sm:ml-4"
             streaming={streaming}
           />
         )}
