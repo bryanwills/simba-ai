@@ -69,7 +69,7 @@ def generate(state):
     """
     print("---GENERATE---")
     question = state["question"]
-    documents = state["documents"]
+    documents = state["documents"] # type: ignore
 
     # RAG generation
     rag_chain = RAGGenerator()
