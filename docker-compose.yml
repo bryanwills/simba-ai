@@ -7,8 +7,7 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - ./backend:/app
-      - /app/.venv
-      - /app/__pycache__
+      
     command: poetry run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     restart: unless-stopped
 
@@ -22,7 +21,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://backend:8000
     depends_on:
       - backend
     restart: unless-stopped
