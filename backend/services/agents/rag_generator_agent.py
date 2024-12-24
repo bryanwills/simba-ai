@@ -1,15 +1,10 @@
-from langchain import hub
 from langchain_openai import ChatOpenAI
-from langchain.chains import LLMChain
 from langchain_core.output_parsers import StrOutputParser
-from langchain.memory import ChatMessageHistory
 from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
 import os
-from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableWithMessageHistory
 
 # Load environment variables from .env file
 load_dotenv()
@@ -18,13 +13,6 @@ class GenerationInput(BaseModel):
     context: List[str] = Field(..., description="The list of documents' content for the context")
     question: str = Field(..., description="The question that needs to be answered based on the context")
 
-
-# Create the chain with matching memory keys
-memory = ConversationBufferMemory(
-    memory_key="chat_history",
-    input_key="question",
-    return_messages=True
-)
 
 
 
@@ -36,7 +24,9 @@ class RAGGenerator:
         # Define the prompt template with the correct variables
         prompt = ChatPromptTemplate.from_messages([
             ("system", "You are a helpful assistant. Use the following context to answer questions:\n\n{context}"),
-            ("human", "{question}")
+            ("human", "{question}"),
+            ("system", "The following are the previous messages from the user, you can use them to answer the question:\n\n{messages}"),
+            
         ])
 
         
@@ -74,6 +64,7 @@ class RAGGenerator:
         """
         context = input_data.get('context', [])
         question = input_data.get('question', '')
+        messages = input_data.get('messages', [])[:-1] # Exclude the last message
         
         if hasattr(context, 'page_content'):
             page_contents = [context.page_content]
@@ -86,7 +77,8 @@ class RAGGenerator:
 
         inputs = {
             "context": formatted_content,
-            "question": question
+            "question": question,
+            "messages": messages
         }
         
         return chain.invoke(inputs)

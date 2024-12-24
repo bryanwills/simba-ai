@@ -22,7 +22,7 @@ wheels/
 
 /backend/chroma_storage/
 /backend/.env
-/backend/__pycache__/   
+/backend/__pycache__/
 
 
 # Environment variables
