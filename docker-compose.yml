@@ -15,12 +15,12 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev  # Use development Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
-      - "5173:5173"  # Vite's default port
+      - "5173:5173"
     volumes:
       - ./frontend:/app
-      - /app/node_modules  # Don't override node_modules
+      - /app/node_modules
     environment:
       - VITE_API_URL=http://localhost:8000
     depends_on:
