@@ -39,7 +39,7 @@ workflow.add_edge("transform_query", END)
 
 
 # Compile
-graph = workflow.compile()
+graph = workflow.compile(checkpointer=memory)
 
 # Generate and display the graph as an image
 # image_bytes = graph.get_graph().draw_mermaid_png()

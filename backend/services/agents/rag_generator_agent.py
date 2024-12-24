@@ -1,15 +1,11 @@
-from langchain import hub
 from langchain_openai import ChatOpenAI
-from langchain.chains import LLMChain
 from langchain_core.output_parsers import StrOutputParser
-from langchain.memory import ChatMessageHistory
 from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
 import os
 from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableWithMessageHistory
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,14 +13,6 @@ load_dotenv()
 class GenerationInput(BaseModel):
     context: List[str] = Field(..., description="The list of documents' content for the context")
     question: str = Field(..., description="The question that needs to be answered based on the context")
-
-
-# Create the chain with matching memory keys
-memory = ConversationBufferMemory(
-    memory_key="chat_history",
-    input_key="question",
-    return_messages=True
-)
 
 
 
@@ -35,8 +23,8 @@ class RAGGenerator:
 
         # Define the prompt template with the correct variables
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a helpful assistant. Use the following context to answer questions:\n\n{context}"),
-            ("human", "{question}")
+            ("system", "You are a helpful assistant. Use the following context to answer questions. Consider the chat history to provide relevant and contextual responses:\n\n{context}"),
+            ("human", "{chat_history}\n\nQuestion: {question}")
         ])
 
         
@@ -74,6 +62,7 @@ class RAGGenerator:
         """
         context = input_data.get('context', [])
         question = input_data.get('question', '')
+        messages = input_data.get('messages', [])[:-1]
         
         if hasattr(context, 'page_content'):
             page_contents = [context.page_content]
@@ -86,37 +75,11 @@ class RAGGenerator:
 
         inputs = {
             "context": formatted_content,
-            "question": question
+            "question": question,
+            "chat_history": messages
         }
         
         return chain.invoke(inputs)
-    
-    async def astream(self, input_data: dict):
-        """
-        Stream the RAG generation process asynchronously.
-        """
-        context = input_data.get('context', [])
-        question = input_data.get('question', '')
-        
-        if hasattr(context, 'page_content'):
-            page_contents = [context.page_content]
-        else:
-            page_contents = [doc.page_content for doc in context]
-            
-        formatted_content = self.format_docs(page_contents)
-
-        chain = self.prompt | self.llm
-
-        inputs = {
-            "context": formatted_content,
-            "question": question
-        }
-        
-        async for chunk in chain.astream(inputs):
-            response_data = {
-                "generation": chunk
-            }
-            yield response_data
     
     
    

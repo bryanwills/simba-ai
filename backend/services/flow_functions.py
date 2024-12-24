@@ -69,11 +69,12 @@ def generate(state):
     """
     print("---GENERATE---")
     question = state["question"]
-    documents = state["documents"] # type: ignore
+    documents = state["documents"]
+    messages = state["messages"]
 
     # RAG generation
     rag_chain = RAGGenerator()
-    generation = rag_chain.invoke({"context": documents, "question": question})
+    generation = rag_chain.invoke({"context": documents, "question": question, "messages": messages})
     return {"generation": generation}
 
     # async for chunk in rag_chain.astream({"context": documents, "question": question}):
