@@ -19,3 +19,6 @@ class State(TypedDict):
     suggestions: list[str]
     products:list[str]
 
+
+
+graph_builder = StateGraph(State)

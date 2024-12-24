@@ -1,12 +1,12 @@
-
-import ChatApp from './pages/ChatApp'
+import ChatFrame from '@/components/ChatFrame';
 
 function App() {
   return (
-      <div className="h-screen bg-background">
-        <ChatApp />
-      </div>
-  )
+    <div>
+      {/* Your other content */}
+      <ChatFrame />
+    </div>
+  );
 }
 
-export default App
+export default App;

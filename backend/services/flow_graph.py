@@ -10,8 +10,8 @@ workflow = StateGraph(State)
 
 
 
-# Initialize MemorySaver without parameters
-memory = MemorySaver()
+# Initialize MemorySaver with the configuration directly
+memory = MemorySaver()   
 
 # Define the nodes
 workflow.add_node("retrieve", retrieve)  # retrieve
@@ -39,7 +39,7 @@ workflow.add_edge("transform_query", END)
 
 
 # Compile
-graph = workflow.compile(checkpointer=memory)
+graph = workflow.compile()
 
 # Generate and display the graph as an image
 # image_bytes = graph.get_graph().draw_mermaid_png()
