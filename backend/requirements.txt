@@ -21,6 +21,3 @@ python-multipart>=0.0.6
 pydantic>=2.4.2
 langchain-openai
 markdown
-langid
-googletrans==3.1.0a0
-httpx>=0.24.1
