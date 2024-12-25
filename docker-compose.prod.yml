@@ -6,17 +6,23 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
-      - ./backend/markdown:/app/markdown
-    restart: unless-stopped
+      - ./backend:/app
+      - /app/.venv
+      - /app/__pycache__
+    command: poetry run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    restart: "no"
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile  # Use production Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
-      - "80:80"
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     environment:
-      - VITE_API_URL=http://backend:8000
+      - VITE_API_URL=http://172.16.20.40:8000
     depends_on:
       - backend
-    restart: unless-stopped 
+    restart: "no"
