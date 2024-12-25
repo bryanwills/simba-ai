@@ -1,27 +1,26 @@
 FROM node:18-slim
 
+# Set working directory
 WORKDIR /app
 
 # Install necessary build tools
-RUN apt-get update && \
-    apt-get install -y python3 make g++ && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-# Copy package files
+# Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm ci --platform=linux --arch=x64
 
-# Clean install with specific platform
-RUN npm install --platform=linux --arch=x64 && \
-    npm install @rollup/rollup-linux-x64-gnu
+# Install specific dependencies
+RUN npm install @rollup/rollup-linux-x64-gnu
 
-# Copy source code
+# Copy application source code
 COPY . .
 
 # Add node_modules/.bin to PATH
 ENV PATH="/app/node_modules/.bin:$PATH"
 
-
+# Expose port for development server
 EXPOSE 5173
 
+# Start the Vite development server
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
