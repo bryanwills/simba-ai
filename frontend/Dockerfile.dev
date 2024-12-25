@@ -12,8 +12,7 @@ COPY package*.json ./
 RUN npm install
 
 # Clean install with specific platform
-RUN rm -rf node_modules package-lock.json && \
-    npm install --platform=linux --arch=x64 && \
+RUN npm install --platform=linux --arch=x64 && \
     npm install @rollup/rollup-linux-x64-gnu
 
 # Copy source code
