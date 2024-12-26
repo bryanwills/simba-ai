@@ -39,4 +39,9 @@ docker-compose build --no-cache
 docker-compose up
 ```
 
+## How to run in production
+```
+docker-compose -f docker-compose.prod.yml up --build
+```
+
 navigate to http://localhost:5173 to access the frontend
