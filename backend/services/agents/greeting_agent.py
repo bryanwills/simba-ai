@@ -349,7 +349,6 @@ def detect_language(question: str) -> str:
     detected_language = chain.invoke({"question": question}).strip()
     return detected_language
 
-@lru_cache(maxsize=20)
 def generate_dynamic_greeting(question: str) -> str:
     """
     Génère une réponse dynamique aux salutations, en respectant strictement la langue détectée.
