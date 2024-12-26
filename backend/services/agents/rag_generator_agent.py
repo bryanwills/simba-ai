@@ -7,6 +7,9 @@ import os
 from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import ChatPromptTemplate
 
+from langchain_core.prompts import PromptTemplate
+
+
 # Load environment variables from .env file
 load_dotenv()
 # Pydantic model for input data validation
@@ -18,14 +21,51 @@ class GenerationInput(BaseModel):
 
 # Class implementation
 class RAGGenerator:
-    def __init__(self, model_name: str = "gpt-4o", temperature: float = 0):
+    def __init__(self, model_name: str = "gpt-4o", temperature: float = 0, is_gretting=False):
+
+      
+        message_greeting = """
+                You are a helpful assistant that provides information about insurance and savings products.
+    Always respond in the same language as the user's message.
+    If the user greets you, respond with a greeting and ask how you can help.
+    Be polite, professional, and concise.
+
+                """
+
+        message_rag = """
+        Tu es un assistant intelligent spécialisé dans les produits et services d'assurance ATLANTASANAD fourni dans les documents.  
+        Reponds à la question en proposant des solutions spécifiques et adaptées aux besoins décrits en se basant toujours et uniquement sur les documents fourni sans depassé 200 caracteres.
+
+        Consignes pour structurer la réponse :
+        - Répondez dans la langue de la question. Si la question est en Darija marocaine, répondez toujours en Darija.
+        - Proposez plusieurs produits adaptés à la situation décrite dans la question.
+        - Pour chaque produit, expliquez brièvement son objectif et ses avantages (limitez à 2-3 lignes par produit).
+        - Adoptez un ton professionnel et accueillant.
+        - Utilisez des puces pour énumérer les produits.
+        - Si les informations disponibles sont insuffisantes, indiquez clairement que plus d'informations sont nécessaires.
+        - Le tarif Liberis Pro dépend  de la valeur du bâtiment et de sa catégorie(A,B,C et D). Utilise les informations présentes dans la base de connaissances pour déterminer le tarif approprié en fonction de ces deux critères.
+        **Exemple :**
+        - Valeur du bâtiment : 200 000 Dhs
+        - Catégorie : A
+        - Tarif Liberis Pro : [830,30]
+        - utilise toujours l'historique des conversations pour repondre a la question.
+        - La réponse doit obligatoirement contenir le nom du produit d'assurance.
+
+
+        Contexte : {context}
+        Question : {question}
+        Historique : {chat_history}
+        Produits d'assurance : {products}
+        Réponse :
+        """
+
 
 
         # Define the prompt template with the correct variables
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a helpful assistant. Use the following context to answer questions. Consider the chat history to provide relevant and contextual responses:\n\n{context}"),
-            ("human", "{chat_history}\n\nQuestion: {question}")
-        ])
+        if is_gretting:
+            prompt = PromptTemplate.from_template(message_greeting)
+        else:
+             prompt = PromptTemplate.from_template(message_rag)
 
         
         # Pull the prompt from the hub
@@ -63,6 +103,7 @@ class RAGGenerator:
         context = input_data.get('context', [])
         question = input_data.get('question', '')
         messages = input_data.get('messages', [])[:-1]
+        products = input_data.get('products', [])
         
         if hasattr(context, 'page_content'):
             page_contents = [context.page_content]
@@ -73,10 +114,14 @@ class RAGGenerator:
 
         chain = self.prompt | self.llm
 
+        print(products)
+        
         inputs = {
             "context": formatted_content,
             "question": question,
-            "chat_history": messages
+            "chat_history": messages,
+            "products": products
+
         }
         
         return chain.invoke(inputs)
