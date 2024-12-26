@@ -1,4 +1,6 @@
 import os
+from typing import Any, Dict
+from services.agents.greeting_agent import generate_dynamic_greeting, process_greeting
 from langchain.schema import Document
 from services.agents.retrieval_agent import Retrieval
 from services.agents.summary_writer_agent import SummaryWriter,DocumentsInput
@@ -6,7 +8,18 @@ from services.agents.rag_generator_agent import RAGGenerator
 from services.agents.grader_agent import RetrievalGrader
 from services.agents.question_writer_agent import QuestionInput, QuestionRewriter
 from services.agents.web_search_agent import TavilySearchTool
+from langchain.memory import ConversationBufferMemory
 
+def greeting(state):
+    print("---GREETING---")
+    question = state["question"]
+    result = process_greeting(question,"")
+    result_response = result.get("response")
+    result_is_greeting=result.get("is_greeting")
+    print(result)
+    documents = Document(page_content = result_response)
+    
+    return {"documents": documents, "question": question, "filenames" : [],"products":[], "is_greeting":result_is_greeting}
 
 def retrieve(state):
     """
@@ -57,6 +70,7 @@ def summary_writer(state):
     return {"documents": documents}
 
 
+
 def generate(state):
     """
     Generate answer
@@ -79,6 +93,9 @@ def generate(state):
 
     # async for chunk in rag_chain.astream({"context": documents, "question": question}):
     #     yield chunk
+
+
+
 
 
 def grade_documents(state):
@@ -172,7 +189,37 @@ def web_search(state):
 ### Edges
 
 
-def decide_to_generate(state):
+# def decide_to_generate(state):
+#     """
+#     Determines whether to generate an answer, or re-generate a question.
+
+#     Args:
+#         state (dict): The current graph state
+
+#     Returns:
+#         str: Binary decision for next node to call
+#     """
+
+#     print("---ASSESS GRADED DOCUMENTS---")
+#     state["question"]
+#     web_search = state["web_search"]
+#     state["documents"]
+
+#     if web_search == "Yes":
+#         # All documents have been filtered check_relevance
+#         # We will re-generate a new query
+#         print(
+#             "---DECISION: ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, TRANSFORM QUERY---"
+#         )
+#         return "transform_query"
+#     else:
+#         # We have relevant documents, so generate answer
+#         print("---DECISION: GENERATE---")
+#         return "generate"
+
+
+
+def decide_is_greeting(state):
     """
     Determines whether to generate an answer, or re-generate a question.
 
@@ -182,20 +229,9 @@ def decide_to_generate(state):
     Returns:
         str: Binary decision for next node to call
     """
-
-    print("---ASSESS GRADED DOCUMENTS---")
-    state["question"]
-    web_search = state["web_search"]
-    state["documents"]
-
-    if web_search == "Yes":
-        # All documents have been filtered check_relevance
-        # We will re-generate a new query
-        print(
-            "---DECISION: ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, TRANSFORM QUERY---"
-        )
-        return "transform_query"
+    is_greeting = state["is_greeting"]
+    print(is_greeting)
+    if is_greeting:
+        return "true"
     else:
-        # We have relevant documents, so generate answer
-        print("---DECISION: GENERATE---")
-        return "generate"
+        return "false"
