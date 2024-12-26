@@ -85,10 +85,12 @@ def generate(state):
     question = state["question"]
     documents = state["documents"]
     messages = state["messages"]
+    products= state["filenames"]
 
+    is_greeting=state["is_greeting"]
     # RAG generation
-    rag_chain = RAGGenerator()
-    generation = rag_chain.invoke({"context": documents, "question": question, "messages": messages})
+    rag_chain = RAGGenerator(is_greeting)
+    generation = rag_chain.invoke({"context": documents, "question": question, "messages": messages, "products":products})
     return {"generation": generation}
 
     # async for chunk in rag_chain.astream({"context": documents, "question": question}):
