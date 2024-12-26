@@ -6,11 +6,12 @@ import { Bot, Send, Trash2 } from 'lucide-react';
 import ChatMessage from '../components/ChatMessage';
 import { config } from '@/config';
 import { cn } from "@/lib/utils";
+import { Message } from '@/types/chat';
 
-interface Message {
+export interface Message {
   id: string;
-  text: string;
-  isAi: boolean;
+  role: 'user' | 'assistant';
+  content: string;
   streaming?: boolean;
   followUpQuestions?: string[];
 }
@@ -21,8 +22,12 @@ interface StreamMarker {
   details: string;
 }
 
-const ChatApp: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+interface ChatAppProps {
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+}
+
+const ChatApp: React.FC<ChatAppProps> = ({ messages, setMessages }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -203,14 +208,14 @@ const ChatApp: React.FC = () => {
             type="text"
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            placeholder="Type your message..."
+            placeholder="Ecrivez ici..."
             className="flex-1"
             disabled={isLoading}
           />
           <Button 
             type="submit" 
             disabled={isLoading || !inputMessage.trim()}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
+            className="bg-[#0066b2] hover:bg-[#0077cc] text-white"
             size="icon"
           >
             <Send className="h-4 w-4" />

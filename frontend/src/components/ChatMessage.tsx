@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import FollowUpQuestions from './FollowUpQuestions';
+import chatbotIcon from "../assets/chatbot-icon.svg";
 
 interface ChatMessageProps {
   isAi: boolean;
@@ -22,59 +23,47 @@ const ChatMessage = ({
   onFollowUpClick 
 }: ChatMessageProps) => {
   return (
-    <div className={cn(
-      "flex gap-3",
-      isAi ? "flex-row" : "flex-row-reverse"
-    )}>
+    <div className={`flex ${isAi ? 'justify-start' : 'justify-end'} max-w-full px-4`}>
+      {isAi && (
+        <img 
+          src={chatbotIcon} 
+          alt="Bot" 
+          className="w-8 h-8 rounded-full mr-2 flex-shrink-0"
+        />
+      )}
       <div className={cn(
-        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-        isAi ? "bg-blue-100" : "bg-gray-100"
+        "rounded-lg px-4 py-2 break-words",
+        "max-w-[85%] md:max-w-[75%]",
+        isAi 
+          ? "bg-gray-100 text-gray-900" 
+          : "bg-[#0066b2] text-white",
+        streaming && "animate-pulse"
       )}>
         {isAi ? (
-          <Bot className="h-5 w-5 text-blue-500" />
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkBreaks]}
+            className="prose prose-sm max-w-none overflow-hidden"
+            components={{
+              p: ({ children }) => <p className="mb-2 last:mb-0 whitespace-pre-wrap">{children}</p>,
+              ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+              li: ({ children }) => <li className="marker:text-gray-400">{children}</li>,
+              code: ({ node, inline, className, children, ...props }) => (
+                <code className={cn(
+                  "bg-gray-100 rounded px-1 py-0.5",
+                  inline ? "text-sm" : "block p-2 my-2 text-sm overflow-x-auto",
+                  className
+                )} {...props}>
+                  {children}
+                </code>
+              ),
+              pre: ({ children }) => <pre className="bg-gray-100 rounded p-2 my-2 overflow-x-auto">{children}</pre>,
+            }}
+          >
+            {message || ''}
+          </ReactMarkdown>
         ) : (
-          <User className="h-5 w-5 text-gray-500" />
-        )}
-      </div>
-      <div className="flex-1 space-y-2">
-        <div className={cn(
-          "rounded-lg px-4 py-2 max-w-full",
-          isAi ? "bg-white prose prose-sm max-w-none" : "bg-blue-500 text-white",
-          streaming && "animate-pulse"
-        )}>
-          {isAi ? (
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkBreaks]}
-              className="overflow-x-auto"
-              components={{
-                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
-                ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
-                li: ({ children }) => <li className="marker:text-gray-400">{children}</li>,
-                code: ({ node, inline, className, children, ...props }) => (
-                  <code className={cn(
-                    "bg-gray-100 rounded px-1 py-0.5",
-                    inline ? "text-sm" : "block p-2 my-2 text-sm overflow-x-auto",
-                    className
-                  )} {...props}>
-                    {children}
-                  </code>
-                ),
-                pre: ({ children }) => <pre className="bg-gray-100 rounded p-2 my-2 overflow-x-auto">{children}</pre>,
-              }}
-            >
-              {message || ''}
-            </ReactMarkdown>
-          ) : (
-            <p>{message}</p>
-          )}
-        </div>
-        {isAi && followUpQuestions && (
-          <FollowUpQuestions
-            questions={followUpQuestions}
-            onQuestionClick={onFollowUpClick!}
-            streaming={streaming}
-          />
+          <p className="whitespace-pre-wrap">{message}</p>
         )}
       </div>
     </div>
