@@ -29,4 +29,14 @@ then run the following command to start the application
 docker-compose up --build 
 ```
 
+**important note:** make sure that the VITE_API_URL is set to the server's ip address
+
+## How to clean restart 
+```
+docker-compose down --volumes
+docker system prune -a --volumes
+docker-compose build --no-cache
+docker-compose up
+```
+
 navigate to http://localhost:5173 to access the frontend

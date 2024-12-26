@@ -1,19 +1,19 @@
 FROM node:18-slim
 
-# Set the working directory
 WORKDIR /app
 
 # Install necessary build tools
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y python3 make g++ && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
+RUN npm install
 
-# Install dependencies
-RUN npm ci
-
-# Install additional platform-specific packages
-RUN npm install @rollup/rollup-linux-x64-gnu
+# Clean install with specific platform
+RUN npm install --platform=linux --arch=x64 && \
+    npm install @rollup/rollup-linux-x64-gnu
 
 # Copy source code
 COPY . .
@@ -21,8 +21,7 @@ COPY . .
 # Add node_modules/.bin to PATH
 ENV PATH="/app/node_modules/.bin:$PATH"
 
-# Expose port
+
 EXPOSE 5173
 
-# Start the development server
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
