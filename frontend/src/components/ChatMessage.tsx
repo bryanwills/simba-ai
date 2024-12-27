@@ -21,62 +21,61 @@ const ChatMessage = ({
   followUpQuestions = [],
   onFollowUpClick 
 }: ChatMessageProps) => {
-  // Handle numerical values and JSON status messages
-  const formattedMessage = React.useMemo(() => {
-    if (typeof message === 'number') {
-      return message.toString();
-    }
-    try {
-      const parsed = JSON.parse(message);
-      if (parsed.status) return null;
-      return parsed.content || message;
-    } catch {
-      return message;
-    }
-  }, [message]);
+  // Filter out status messages
+  const cleanMessage = message.replace(
+    /\{"status":\s*"end",\s*"node":\s*"generate",\s*"details":\s*"Node stream ended"\}/g, 
+    ''
+  ).trim();
 
-  if (!formattedMessage) return null;
+  // Don't render if message is empty after cleaning
+  if (!cleanMessage) {
+    return null;
+  }
 
   return (
-    <div className={`flex ${isAi ? 'justify-start' : 'justify-end'} w-full mb-4`}>
-      <div className={cn(
-        "flex items-start gap-2 w-full",
-        isAi ? "flex-row" : "flex-row-reverse"
-      )}>
-        {isAi && (
+    <div className="flex flex-col">
+      {!isAi && (
+        <div className="flex justify-end w-full">
+          <div className="rounded-lg p-4 bg-[#0066b2] text-white whitespace-pre-line max-w-[85%]">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkBreaks]}
+              className="prose prose-sm max-w-none break-words text-white prose-headings:text-white prose-strong:text-white"
+            >
+              {cleanMessage}
+            </ReactMarkdown>
+          </div>
+        </div>
+      )}
+      
+      {isAi && (
+        <div className="flex flex-col w-full">
           <img 
             src={chatbotIcon} 
             alt="Bot" 
-            className="w-8 h-8 rounded-full flex-shrink-0 mt-1"
+            className="w-8 h-8 rounded-full mb-2"
           />
-        )}
-        <div className={cn(
-          "rounded-lg p-4 max-w-[85%]",
-          isAi 
-            ? "bg-white border" 
-            : "bg-[#0066b2] text-white whitespace-pre-line"
-        )}>
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm, remarkBreaks]}
-            className={cn(
-              "prose prose-sm max-w-none break-words",
-              !isAi && "text-white prose-headings:text-white prose-strong:text-white"
-            )}
-          >
-            {formattedMessage}
-          </ReactMarkdown>
-          {isAi && followUpQuestions.length > 0 && (
-            <div className="mt-4 whitespace-pre-line">
-              <p className="text-sm font-medium mb-2">Suggestions:</p>
-              <FollowUpQuestions 
-                questions={followUpQuestions.map(q => q.trim())}
-                onQuestionClick={onFollowUpClick} 
-                className="whitespace-pre-line"
-              />
+          <div className="flex justify-start w-full">
+            <div className="rounded-lg p-4 bg-white border w-full">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                className="prose prose-sm max-w-none break-words"
+              >
+                {cleanMessage}
+              </ReactMarkdown>
+              {followUpQuestions.length > 0 && (
+                <div className="mt-4 whitespace-pre-line">
+                  <p className="text-sm font-medium mb-2">Suggestions:</p>
+                  <FollowUpQuestions 
+                    questions={followUpQuestions.map(q => q.trim())}
+                    onQuestionClick={onFollowUpClick} 
+                    className="whitespace-pre-line"
+                  />
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
