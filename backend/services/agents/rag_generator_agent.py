@@ -21,16 +21,16 @@ class GenerationInput(BaseModel):
 
 # Class implementation
 class RAGGenerator:
-    def __init__(self, model_name: str = "gpt-4o", temperature: float = 0, is_gretting=False):
+    def __init__(self, model_name: str = "gpt-4o", temperature: float = 0, is_greeting = False):
+
+        self.is_greeting = is_greeting
 
       
         message_greeting = """
-                You are a helpful assistant that provides information about insurance and savings products.
-    Always respond in the same language as the user's message.
-    If the user greets you, respond with a greeting and ask how you can help.
-    Be polite, professional, and concise.
+        Rewrite this greeting message without changing anything.
+        {gretting_message}
 
-                """
+        """
 
         message_rag = """
         Tu es un assistant intelligent spécialisé dans les produits et services d'assurance ATLANTASANAD fourni dans les documents.  
@@ -43,12 +43,7 @@ class RAGGenerator:
         - Adoptez un ton professionnel et accueillant.
         - Utilisez des puces pour énumérer les produits.
         - Si les informations disponibles sont insuffisantes, indiquez clairement que plus d'informations sont nécessaires.
-        - Le tarif Liberis Pro dépend  de la valeur du bâtiment et de sa catégorie(A,B,C et D). Utilise les informations présentes dans la base de connaissances pour déterminer le tarif approprié en fonction de ces deux critères.
-        **Exemple :**
-        - Valeur du bâtiment : 200 000 Dhs
-        - Catégorie : A
-        - Tarif Liberis Pro : [830,30]
-        - utilise toujours l'historique des conversations pour repondre a la question.
+        - utilise toujours l'historique des conversations pour repondre à la question.
         - La réponse doit obligatoirement contenir le nom du produit d'assurance.
 
 
@@ -59,10 +54,12 @@ class RAGGenerator:
         Réponse :
         """
 
-
+        print(f"flag greeting function RAGGenerator:{is_greeting}")
 
         # Define the prompt template with the correct variables
-        if is_gretting:
+        if self.is_greeting:
+           
+            print(f"promt greeting : {message_greeting}")
             prompt = PromptTemplate.from_template(message_greeting)
         else:
              prompt = PromptTemplate.from_template(message_rag)
@@ -104,6 +101,9 @@ class RAGGenerator:
         question = input_data.get('question', '')
         messages = input_data.get('messages', [])[:-1]
         products = input_data.get('products', [])
+        gretting_message = input_data.get('gretting_message')
+        is_greeting = input_data.get('is_greeting')
+
         
         if hasattr(context, 'page_content'):
             page_contents = [context.page_content]
@@ -114,13 +114,13 @@ class RAGGenerator:
 
         chain = self.prompt | self.llm
 
-        print(products)
         
         inputs = {
             "context": formatted_content,
             "question": question,
             "chat_history": messages,
-            "products": products
+            "products": products,
+            "gretting_message":gretting_message
 
         }
         

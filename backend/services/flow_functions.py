@@ -16,10 +16,12 @@ def greeting(state):
     result = process_greeting(question,"")
     result_response = result.get("response")
     result_is_greeting=result.get("is_greeting")
-    print(result)
+    print(f"result greeting: {result}")
+    print(f"flag greetting function greeting {result_is_greeting}")
     documents = Document(page_content = result_response)
+
     
-    return {"documents": documents, "question": question, "filenames" : [],"products":[], "is_greeting":result_is_greeting}
+    return {"generation": result_response, "documents": documents, "question": question, "filenames" : [],"products":[], "is_greeting":result_is_greeting}
 
 def retrieve(state):
     """
@@ -86,11 +88,13 @@ def generate(state):
     documents = state["documents"]
     messages = state["messages"]
     products= state["filenames"]
-
     is_greeting=state["is_greeting"]
+    gretting_message=state["generation"]
+    
+    print(f"flag is_greeting function flow generare {is_greeting}")
     # RAG generation
-    rag_chain = RAGGenerator(is_greeting)
-    generation = rag_chain.invoke({"context": documents, "question": question, "messages": messages, "products":products})
+    rag_chain = RAGGenerator(is_greeting=is_greeting)
+    generation = rag_chain.invoke({"context": documents, "question": question, "messages": messages, "products":products, "gretting_message":gretting_message, "is_greeting":is_greeting} )
     return {"generation": generation}
 
     # async for chunk in rag_chain.astream({"context": documents, "question": question}):
