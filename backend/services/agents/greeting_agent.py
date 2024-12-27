@@ -176,7 +176,7 @@
 # ])
 
 # # Create base chain
-# llm = ChatOpenAI(temperature=0.7, model="gpt-4")
+# llm = ChatOpenAI(temperature=0.7, model="gpt-4o")
 # chain = prompt | llm
 
 # # Add message history
@@ -311,10 +311,10 @@ greeting_detection_prompt = PromptTemplate.from_template("""
 
     Question : {question}
     Réponse :
-""")
+    """)
 
 # Model used for greeting detection
-llm_detection = ChatOpenAI(model_name="gpt-4", temperature=0)
+llm_detection = ChatOpenAI(model_name="gpt-4o", temperature=0)
 greeting_chain = greeting_detection_prompt | llm_detection | StrOutputParser()
 
 def is_greeting(question: str) -> bool:
@@ -332,7 +332,7 @@ def detect_language(question: str) -> str:
     'FR' pour Français,
     'OTHER' sinon.
     """
-    llm_lang = ChatOpenAI(model_name="gpt-4", temperature=0.0)
+    llm_lang = ChatOpenAI(model_name="gpt-4o", temperature=0)
     language_detection_prompt = ChatPromptTemplate.from_messages([
         (
             "system",
@@ -353,7 +353,7 @@ def generate_dynamic_greeting(question: str) -> str:
     """
     Génère une réponse dynamique aux salutations, en respectant strictement la langue détectée.
     """
-    llm = ChatOpenAI(model_name="gpt-4", temperature=0.3)
+    llm = ChatOpenAI(model_name="gpt-4o", temperature=0.3)
 
     # Détecter la langue
     detected_language = detect_language(question)
@@ -442,7 +442,7 @@ prompt = ChatPromptTemplate.from_messages([
 ])
 
 # LLM chain with history
-llm_main = ChatOpenAI(model_name="gpt-4", temperature=0.7)
+llm_main = ChatOpenAI(model_name="gpt-4o", temperature=0.7)
 chain = prompt | llm_main
 chain_with_history = RunnableWithMessageHistory(
     chain,
