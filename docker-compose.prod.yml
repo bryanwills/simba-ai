@@ -1,15 +1,5 @@
 services:
   backend:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-    volumes:
-      - ./markdown:/app/markdown
-    restart: unless-stopped
-services:
-  backend:
     build: ./backend
     ports:
       - "8000:8000"
@@ -32,7 +22,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://172.16.20.40:8000
     depends_on:
       - backend
     restart: "no"
