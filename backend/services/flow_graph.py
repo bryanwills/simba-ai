@@ -1,5 +1,5 @@
 import io
-from tkinter import Image
+from PIL import Image
 from langgraph.graph import END, StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
 from services.flow_functions import *
@@ -53,7 +53,7 @@ workflow.add_edge("transform_query", END)
 # Compile
 graph = workflow.compile(checkpointer=memory)
 
-# # Generate and display the graph as an image
+# Generate and display the graph as an image
 # image_bytes = graph.get_graph().draw_mermaid_png()
 # image = Image.open(io.BytesIO(image_bytes))
 
