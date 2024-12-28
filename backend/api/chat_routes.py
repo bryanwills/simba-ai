@@ -23,10 +23,17 @@ async def invoke_graph(query: Query = Body(...)):
     state["messages"] = [("user", query.message)]
     state["question"] = query.message
 
+    # Helper function to check if string is numeric (including . and ,)
+    def is_numeric(s):
+        import re
+        return bool(re.match(r'^[\d ]+$', s.strip()))
+    
+    
     async def generate_response():
         try:
-           
-            
+            # Initialize buffer for numeric chunks
+            buffer = ""
+
             async for event in graph.astream_events(
                 state,
                 version="v2", 
@@ -50,7 +57,20 @@ async def invoke_graph(query: Query = Body(...)):
                 # Emit raw data for the streaming events
                 elif event_type == "on_chat_model_stream":
                     chunk = event["data"]["chunk"].content
-                    yield chunk  # Send only the raw data
+                    
+                   
+                    # Buffer numeric chunks until we get non-numeric content
+                    if is_numeric(chunk) or (buffer and chunk in [" ", ",", "."]):
+                        buffer += chunk
+                    else:
+                        # Output buffered content if any, otherwise output current chunk
+                        if buffer:
+                            buffer += chunk
+                            yield buffer
+                            buffer = ""
+                        else:
+                            yield chunk
+                        
 
                 # Emit end of the node stream as a JSON object
                 elif event_type == "on_chat_model_end":

@@ -1,11 +1,9 @@
 import io
-from PIL import Image
 from langgraph.graph import END, StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
 from services.flow_functions import *
 from services.classes.state_class import State
 from dotenv import load_dotenv
-import matplotlib.pyplot as plt
 
 
 load_dotenv() 
