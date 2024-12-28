@@ -35,10 +35,15 @@ def retrieve(state):
     """
     print("---RETRIEVE---")
     question = state["question"]
+    messages = state["messages"] #History of the conversation
 
-    # Retrieval
-    retriever=Retrieval()
-    documents = retriever.invoke(user_query=question)
+    # Retrieval with conversation history
+    retriever = Retrieval()
+    # Format conversation history into a single string
+    conversation_context = "\n".join([f"{msg.content}" for msg in messages])
+    # Combine current question with conversation history
+    augmented_query = f"Current question: {question}\nConversation history:\n{conversation_context}"
+    documents = retriever.invoke(user_query=augmented_query)
 
     # Extracting page_content from the documents
     filenames = [doc.metadata.get('source') for doc in documents]
