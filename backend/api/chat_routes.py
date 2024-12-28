@@ -60,9 +60,8 @@ async def invoke_graph(query: Query = Body(...)):
                     
                    
                     # Buffer numeric chunks until we get non-numeric content
-                    if is_numeric(chunk):
+                    if is_numeric(chunk) or (buffer and chunk in [" ", ",", "."]):
                         buffer += chunk
-                       
                     else:
                         # Output buffered content if any, otherwise output current chunk
                         if buffer:
