@@ -45,6 +45,8 @@ def retrieve(state):
     augmented_query = f"Current question: {question}\nConversation history:\n{conversation_context}"
     documents = retriever.invoke(user_query=augmented_query)
 
+    print(f"documents: {documents}")
+
     # Extracting page_content from the documents
     filenames = [doc.metadata.get('source') for doc in documents]
 

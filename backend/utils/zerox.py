@@ -17,9 +17,9 @@ os.environ['PYTHONIOENCODING'] = 'utf-8'
 load_dotenv()
 
 # Model and directory setup
-model = "gpt-4o-mini"
-pdf_directory_path = "Documents/Vie/pdf"  # Directory containing PDF files
-output_dir = "Markdown"
+model = "gpt-4o"
+pdf_directory_path = "Documents/Vie/csv"  # Directory containing PDF files
+output_dir = "markdown_csv"
 custom_system_prompt = """Convert the following PDF page to markdown.
 Return only the markdown with no explanation text.
 Do not exclude any content from the page.
@@ -27,7 +27,7 @@ Be careful with big tables. If a table spans multiple pages, reconstruct it as a
 """
 
 # Ensure API key is set
-os.environ["OPENAI_API_KEY"] = os.getenv('AS_OPENAI_API_KEY')
+os.environ["OPENAI_API_KEY"] = os.getenv('OPENAI_API_KEY')
 
 
 @traceable
@@ -42,7 +42,7 @@ async def process_pdf(file_path):
 
         try:
             # Process the current PDF file
-            raw_result = await zerox(
+            result = await zerox(
                 file_path=file_path,
                 model=model,
                 output_dir=output_dir,
@@ -50,7 +50,7 @@ async def process_pdf(file_path):
                 select_pages=select_pages,
             )
 
-            
+           
 
             print(f"Successfully processed: {file_path}")
         except Exception as e:
@@ -65,6 +65,14 @@ async def main():
     tasks = [process_pdf(file_path) for file_path in pdf_files]
     await asyncio.gather(*tasks)
 
+async def main_csv():
+    # Get all PDF files in the directory
+    csv_files = glob(os.path.join(pdf_directory_path, "*.csv"))
+
+    # Process each file asynchronously
+    tasks = [process_pdf(file_path) for file_path in csv_files]
+    await asyncio.gather(*tasks)
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main_csv())
