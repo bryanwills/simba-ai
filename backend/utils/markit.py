@@ -6,7 +6,7 @@ import warnings
 from markitdown import MarkItDown
 from openai import OpenAI
 
-xlsx_directory_path = "Documents/Vie/xlsx"  # Directory containing PDF files
+directory_path = "Documents/Vie/pdf"  # Directory containing PDF files
 output_dir = "markdown"
 
 md = MarkItDown()
@@ -39,7 +39,7 @@ async def process_file(file_path):
 
 async def main():
     # Get all PDF files in the directory
-    files = glob(os.path.join(xlsx_directory_path, "*.*"))
+    files = glob(os.path.join(directory_path, "*.*"))
 
     # Process each file asynchronously
     tasks = [process_file(file_path) for file_path in files]

@@ -125,7 +125,8 @@ def grade_documents(state):
     print("---CHECK DOCUMENT RELEVANCE TO QUESTION---")
     question = state["question"]
     documents = state["documents"]
-    filenames = state["filenames"]
+    # filenames = state["filenames"]
+    filenames = []
 
     # Score each doc
     retrieval_grader=RetrievalGrader()
@@ -139,6 +140,7 @@ def grade_documents(state):
         if grade == "yes":
             print("---GRADE: DOCUMENT RELEVANT---")
             filtered_docs.append(d)
+            filenames.append(d.metadata.get('source'))
         else:
             print("---GRADE: DOCUMENT NOT RELEVANT---")
             # web_search = "Yes"

@@ -20,7 +20,7 @@ const FollowUpQuestions: React.FC<FollowUpQuestionsProps> = ({
         <button
           key={index}
           onClick={() => onQuestionClick?.(question)}
-          className="block w-full text-left p-2 rounded border hover:bg-gray-50 whitespace-pre-line"
+          className="block w-full text-left p-2 rounded border hover:bg-gray-50 whitespace-pre-line text-sm"
         >
           {question}
         </button>
