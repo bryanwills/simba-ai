@@ -1,9 +1,9 @@
+from core.factories.llm_factory import get_llm
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from pydantic import BaseModel, Field
 from typing import List
-from dotenv import load_dotenv
-import os
+
 from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -11,19 +11,14 @@ from langchain_core.prompts import PromptTemplate
 
 from services.agents.retrieval_agent import Retrieval
 
-
-# Load environment variables from .env file
-load_dotenv()
 # Pydantic model for input data validation
 class GenerationInput(BaseModel):
     context: List[str] = Field(..., description="The list of documents' content for the context")
     question: str = Field(..., description="The question that needs to be answered based on the context")
 
-
-
 # Class implementation
 class RAGGenerator:
-    def __init__(self, model_name: str = "gpt-4o", temperature: float = 0, is_greeting = False):
+    def __init__(self, is_greeting = False):
 
         self.is_greeting = is_greeting
 
@@ -74,11 +69,7 @@ class RAGGenerator:
        Réponse : (répondez dans la langue de la question, si la question est en Darija marocaine, répondez toujours en Darija.)
        
        """
-        
-
-
-        
-
+    
         print(f"flag greeting function RAGGenerator:{is_greeting}")
 
         # Define the prompt template with the correct variables
@@ -95,16 +86,9 @@ class RAGGenerator:
         self.prompt = prompt
 
         # Initialize the language model
-        self.llm = ChatOpenAI(
-                            model_name="gpt-4o",
-                            temperature=0, 
-                            openai_api_key=os.getenv('OPENAI_API_KEY'),
-                            streaming=True
-                            )
+        self.llm = get_llm()
 
-        
-        # Output parser
-        self.output_parser = StrOutputParser()
+
         
         
 

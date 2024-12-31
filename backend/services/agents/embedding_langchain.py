@@ -1,3 +1,4 @@
+from core.factories.embeddings_factory import get_embeddings
 from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter
  
 
@@ -42,14 +43,10 @@ class CustomMarkdownLoader:
 class Embedding:
     def __init__(self):
         # Load environment variables
-        load_dotenv()
-        self.openai_api_key = os.getenv('OPENAI_API_KEY')
         
-        if not self.openai_api_key:
-            raise ValueError("OpenAI API key is missing. Please set the OPENAI_API_KEY environment variable.")
         
-        self.embeddings = OpenAIEmbeddings(openai_api_key=self.openai_api_key)
-        
+        self.embeddings = get_embeddings() 
+    
     def get_all_md_files_from_directory(self, folder_path):
         """
         Retrieve all .md files from a given folder, including subfolders.
