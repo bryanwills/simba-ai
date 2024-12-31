@@ -21,7 +21,7 @@ class RAGGenerator:
     def __init__(self, is_greeting = False):
 
         self.is_greeting = is_greeting
-
+        self.llm = get_llm()
       
         message_greeting = """
         Rewrite this greeting message without changing anything.
@@ -85,12 +85,17 @@ class RAGGenerator:
         # Pull the prompt from the hub
         self.prompt = prompt
 
+<<<<<<< Updated upstream
         # Initialize the language model
         self.llm = get_llm()
 
 
         
         
+=======
+
+        
+>>>>>>> Stashed changes
 
     @staticmethod
     def format_docs(docs: List[str]) -> str:
