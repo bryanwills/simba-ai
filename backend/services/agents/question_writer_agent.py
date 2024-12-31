@@ -85,23 +85,56 @@ class QuestionRewriter:
             content = file.read()
 
         # Define the prompt for the LLM
-        prompt = (
-                "You are given a question asked by a user. The question is '{user_question}'. "
-                "First, determine the language used in the question and refer to it as 'lang'. "
-                "You should then respond in 'lang'. Do not print language or 'lang'. "
-                "You are an expert user extracting information to quiz people on documentation. "
-                "Use the user question as a reference to extract tasks. "
-                "Please analyze the following text and write **exactly three questions** "
-                "that can be answered solely based on the given text. "
-                "If the question is not in English, then respond in French:\n\n"
-            )
+    #     prompt = (
+    #             "You are given a question asked by a user. The question is '{user_question}'. "
+    #             "First, determine the language used in the question and refer to it as 'lang'. "
+    #             "You should then respond in 'lang'. Do not print language or 'lang'. "
+    #             "You are an expert user extracting information to quiz people on documentation. "
+    #             "Use the user question as a reference to extract tasks. "
+    #             "Please analyze the following text and write **exactly three questions** "
+    #             "that can be answered solely based on the given text. "
+    #             "If the question is not in English, then respond in French:\n\n"
+    #         )
+        
+    #     prompt = """
+    #    Question : la question que vous devez répondre
+    #    Réflexion : vous devez toujours réfléchir à ce qu'il faut faire
+    #    Action : l'action à entreprendre, doit être basée sur {context}
+    #    Entrée d'Action : l'entrée à fournir pour l'action
+    #    Observation : le résultat de l'action
+    #    ... (ce cycle Réflexion/Action/Entrée d'Action/Observation peut se répéter N fois)
+    #    Réflexion : je connais maintenant la réponse finale
+    #    Instruction : Fournissez uniquement la réponse finale, sans afficher les étapes de réflexion ou d'action intermédiaires.
+
+    #    Commencez !
+    #    Contexte : {context}
+    #    Question : {user_question}
+    
+    #    Réponse : (répondez dans la langue de la question, si la question est en Darija marocaine, répondez toujours en Darija.)
+       
+    #    """
+        
+        prompt = """
+        Vous êtes un expert chargé de répondre aux questions des utilisateurs en analysant un texte donné. Votre rôle est double : fournir une réponse précise à la question posée et, le cas échéant, générer exactement trois questions pertinentes qui peuvent être répondues uniquement à partir du texte fourni. 
+
+        ### Instructions :
+        1. **Langue** : Déterminez la langue utilisée dans la question ('lang') et répondez uniquement dans cette langue. Si la question est en Darija marocaine, répondez toujours en Darija.
+        2. **Réponse directe** : Fournissez uniquement la réponse finale sans inclure de réflexion, étapes intermédiaires ou actions visibles.
+        3. **Création de questions** : Rédigez trois questions exactement, adaptées au contenu du texte fourni, et dans la langue de la question initiale.
+
+        ### Format :
+        Question : {user_question}
+        Contexte : {content}
+
+        Réponse : 
+        """
 
         questionner_prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", prompt),
                 (
                     "human",
-                    "Here is the reference markdown file: \n\n {content} \n Formulate exactly three questions based on the text.",
+                    "Voici le fichier markdown de référence : \n\n {content} \n Formulez exactement trois questions basées sur ce texte.",
                 ),
             ]
             )
