@@ -29,9 +29,9 @@ class Settings:
     API_V1_STR: str = "/api/v1"
     
     # Paths
-    BASE_DIR = BASE_DIR
-    MARKDOWN_DIR = MARKDOWN_DIR
-    FAISS_INDEX_DIR = FAISS_INDEX_DIR
+    BASE_DIR = "documents"
+    MARKDOWN_DIR = "markdown"
+    FAISS_INDEX_DIR = "faiss_index"
     
     # Model settings
     CHUNK_SIZE = CHUNK_SIZE
