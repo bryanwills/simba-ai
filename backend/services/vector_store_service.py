@@ -28,6 +28,9 @@ class VectorStoreService:
     def save(self):
         self.store.save_local(settings.paths.faiss_index_dir)
 
+    def get_documents(self):
+        return self.store.get_documents()
+
     def add_documents(self, documents):
         # Add documents to store
         print(f"Adding {len(documents)} documents to store")

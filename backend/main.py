@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from api.chat_routes import chat
 from core.utils.logger import setup_logging
 import logging
+from api.ingestion_routes import ingestion
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,6 +22,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(chat)
+app.include_router(ingestion)
 
 # Setup logging at application start
 setup_logging(level=logging.INFO)  # or logging.INFO for less verbose output
