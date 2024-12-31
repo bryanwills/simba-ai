@@ -84,8 +84,8 @@ class RAGGenerator:
         # Define the prompt template with the correct variables
         if self.is_greeting:
            
-            print(f"promt greeting : {message_greeting}")
-            # prompt = PromptTemplate.from_template(message_greeting)
+            # print(f"promt greeting : {message_greeting}")
+            prompt = PromptTemplate.from_template(message_greeting)
         else:
             #  print(f"promt rag : {message_rag}")
              prompt = PromptTemplate.from_template(message_rag)

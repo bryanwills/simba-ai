@@ -81,7 +81,7 @@ class Embedding:
         
         doc_splits = text_splitter.split_documents(docs_list)
         
-        return doc_splits
+        return docs_list
 
     def init_faiss_store(self, doc_splits, save_path=None):
         """
