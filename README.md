@@ -1,6 +1,8 @@
 
 # MigiBot
 
+<a href="https://ibb.co/RHkRGcs"><img src="https://i.ibb.co/ryRDKHz/logo.jpg" alt="logo" border="0"></a>
+
 A Role-Based Retrieval Augmented Generation (RAG) System for Enterprise Information Management
 
 ## Overview
