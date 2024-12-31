@@ -9,6 +9,8 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from langchain_core.prompts import PromptTemplate
 
+from services.agents.retrieval_agent import Retrieval
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -32,27 +34,50 @@ class RAGGenerator:
 
         """
 
+        # message_rag = """
+        # Tu es un assistant intelligent spécialisé dans les produits et services d'assurance ATLANTASANAD fourni dans les documents.  
+        # Reponds à la question en proposant des solutions spécifiques et adaptées aux besoins décrits en se basant toujours et uniquement sur les documents fournis.
+
+        # Consignes pour structurer la réponse :
+        # - Répondez dans la langue de la question. Si la question est en Darija marocaine, répondez toujours en Darija.
+        # - Proposez plusieurs produits adaptés à la situation décrite dans la question.
+        # - Pour chaque produit, expliquez brièvement son objectif et ses avantages (limitez à 2-3 lignes par produit).
+        # - Adoptez un ton professionnel et accueillant.
+        # - Utilisez des puces pour énumérer les produits.
+        # - Si les informations disponibles sont insuffisantes, indiquez clairement que plus d'informations sont nécessaires.
+        # - utilise toujours l'historique des conversations pour repondre à la question.
+        # - La réponse doit obligatoirement contenir le nom du produit d'assurance.
+
+
+        # Contexte : {context}
+        # Question : {question}
+        # Historique : {chat_history}
+        # Produits d'assurance : {products}
+        # Réponse :
+        # """
+
         message_rag = """
-        Tu es un assistant intelligent spécialisé dans les produits et services d'assurance ATLANTASANAD fourni dans les documents.  
-        Reponds à la question en proposant des solutions spécifiques et adaptées aux besoins décrits en se basant toujours et uniquement sur les documents fourni sans depassé 200 caracteres.
+       Question : la question que vous devez répondre
+       Réflexion : vous devez toujours réfléchir à ce qu'il faut faire
+       Action : l'action à entreprendre, doit être basée sur {context}
+       Entrée d'Action : l'entrée à fournir pour l'action
+       Observation : le résultat de l'action
+       ... (ce cycle Réflexion/Action/Entrée d'Action/Observation peut se répéter N fois)
+       Réflexion : je connais maintenant la réponse finale
+       Instruction : Fournissez uniquement la réponse finale, sans afficher les étapes de réflexion ou d'action intermédiaires.
 
-        Consignes pour structurer la réponse :
-        - Répondez dans la langue de la question. Si la question est en Darija marocaine, répondez toujours en Darija.
-        - Proposez plusieurs produits adaptés à la situation décrite dans la question.
-        - Pour chaque produit, expliquez brièvement son objectif et ses avantages (limitez à 2-3 lignes par produit).
-        - Adoptez un ton professionnel et accueillant.
-        - Utilisez des puces pour énumérer les produits.
-        - Si les informations disponibles sont insuffisantes, indiquez clairement que plus d'informations sont nécessaires.
-        - utilise toujours l'historique des conversations pour repondre à la question.
-        - La réponse doit obligatoirement contenir le nom du produit d'assurance.
+       Commencez !
+       Contexte : {context}
+       Question : {question}
+       Historique : {chat_history}
+       Produits d'assurance : {products}
+       Réponse : (répondez dans la langue de la question, si la question est en Darija marocaine, répondez toujours en Darija.)
+       
+       """
+        
 
 
-        Contexte : {context}
-        Question : {question}
-        Historique : {chat_history}
-        Produits d'assurance : {products}
-        Réponse :
-        """
+        
 
         print(f"flag greeting function RAGGenerator:{is_greeting}")
 
@@ -60,8 +85,9 @@ class RAGGenerator:
         if self.is_greeting:
            
             print(f"promt greeting : {message_greeting}")
-            prompt = PromptTemplate.from_template(message_greeting)
+            # prompt = PromptTemplate.from_template(message_greeting)
         else:
+            #  print(f"promt rag : {message_rag}")
              prompt = PromptTemplate.from_template(message_rag)
 
         
@@ -80,18 +106,16 @@ class RAGGenerator:
         # Output parser
         self.output_parser = StrOutputParser()
         
-        # Chain the prompt, LLM, and output parser together
-        # self.rag_chain = self.prompt | self.llm | self.output_parser
-        # Initialize the conversation chain with correct configuration
-        
         
 
     @staticmethod
     def format_docs(docs: List[str]) -> str:
         """
         Format the list of document contents into a single string.
+        Preserves markdown formatting in the documents.
         """
-        return "\n\n".join(docs)
+        # Join with double newlines to maintain markdown paragraph spacing
+        return "\n\n".join(doc.strip() for doc in docs)
 
     def invoke(self, input_data: dict):
         """
@@ -102,8 +126,7 @@ class RAGGenerator:
         messages = input_data.get('messages', [])[:-1]
         products = input_data.get('products', [])
         gretting_message = input_data.get('gretting_message')
-        is_greeting = input_data.get('is_greeting')
-
+        
         
         if hasattr(context, 'page_content'):
             page_contents = [context.page_content]
@@ -136,10 +159,23 @@ if __name__ == "__main__":
         "Here is the content of document 2.",
         "The content of document 3 goes here."
     ]
-    question = "What information is contained in these documents?"
+   
+    question = "le tarif amanea pro pour un bien de 4 millions et catégorie D"
 
     # Create an instance of GenerationInput
     input_data = GenerationInput(context=docs, question=question)
+
+    service = Retrieval()
+    user_query = "le tarif amanea pro pour un bien de 4 millions et catégorie D"
+    documents=service.invoke(user_query)
+    
+
+
+    input_data = {
+        "question": question,
+        "context": documents,
+        
+        }
 
     # Create an instance of RAGGenerator
     rag_generator = RAGGenerator()
