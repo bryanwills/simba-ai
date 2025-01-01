@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from api.chat_routes import chat
+from core.utils.logger import setup_logging
+import logging
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,6 +22,13 @@ app.add_middleware(
 # Include routers
 app.include_router(chat)
 
+# Setup logging at application start
+setup_logging(level=logging.INFO)  # or logging.INFO for less verbose output
+
+# Get logger for this file
+logger = logging.getLogger(__name__)
+
 if __name__ == "__main__":
+    logger.info("Application starting...")
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -52,23 +52,23 @@ class RAGGenerator:
         # """
 
         message_rag = """
-       Question : la question que vous devez répondre
-       Réflexion : vous devez toujours réfléchir à ce qu'il faut faire
-       Action : l'action à entreprendre, doit être basée sur {context}
-       Entrée d'Action : l'entrée à fournir pour l'action
-       Observation : le résultat de l'action
-       ... (ce cycle Réflexion/Action/Entrée d'Action/Observation peut se répéter N fois)
-       Réflexion : je connais maintenant la réponse finale
-       Instruction : Fournissez uniquement la réponse finale, sans afficher les étapes de réflexion ou d'action intermédiaires.
+            Question : la question que vous devez répondre
+            Réflexion : vous devez toujours réfléchir à ce qu'il faut faire
+            Action : l'action à entreprendre, doit être basée sur {context}
+            Entrée d'Action : l'entrée à fournir pour l'action
+            Observation : le résultat de l'action
+            ... (ce cycle Réflexion/Action/Entrée d'Action/Observation peut se répéter N fois)
+            Réflexion : je connais maintenant la réponse finale
+            Instruction : Fournissez uniquement la réponse finale, sans afficher les étapes de réflexion ou d'action intermédiaires.
 
-       Commencez !
-       Contexte : {context}
-       Question : {question}
-       Historique : {chat_history}
-       Produits d'assurance : {products}
-       Réponse : (répondez dans la langue de la question, si la question est en Darija marocaine, répondez toujours en Darija.)
+            Commencez !
+            Contexte : {context}
+            Question : {question}
+            Historique : {chat_history}
+            Produits d'assurance : {products}
+            Réponse : (répondez dans la langue de la question, si la question est en Darija marocaine, répondez toujours en Darija.)
        
-       """
+        """
     
         print(f"flag greeting function RAGGenerator:{is_greeting}")
 
@@ -85,17 +85,8 @@ class RAGGenerator:
         # Pull the prompt from the hub
         self.prompt = prompt
 
-<<<<<<< Updated upstream
-        # Initialize the language model
-        self.llm = get_llm()
-
 
         
-        
-=======
-
-        
->>>>>>> Stashed changes
 
     @staticmethod
     def format_docs(docs: List[str]) -> str:

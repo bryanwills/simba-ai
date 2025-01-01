@@ -45,8 +45,6 @@ def retrieve(state):
     augmented_query = f"Current question: {question}\nConversation history:\n{conversation_context}"
     documents = retriever.invoke(user_query=augmented_query)
 
-    print(f"documents: {documents}")
-
     # Extracting page_content from the documents
     filenames = [doc.metadata.get('source') for doc in documents]
 
@@ -103,9 +101,6 @@ def generate(state):
     rag_chain = RAGGenerator(is_greeting=is_greeting)
     generation = rag_chain.invoke({"context": documents, "question": question, "messages": messages, "products":products, "gretting_message":gretting_message, "is_greeting":is_greeting} )
     return {"generation": generation}
-
-    # async for chunk in rag_chain.astream({"context": documents, "question": question}):
-    #     yield chunk
 
 
 
@@ -199,38 +194,6 @@ def web_search(state):
     documents.append(web_results)
 
     return {"documents": documents, "question": question}
-
-
-### Edges
-
-
-# def decide_to_generate(state):
-#     """
-#     Determines whether to generate an answer, or re-generate a question.
-
-#     Args:
-#         state (dict): The current graph state
-
-#     Returns:
-#         str: Binary decision for next node to call
-#     """
-
-#     print("---ASSESS GRADED DOCUMENTS---")
-#     state["question"]
-#     web_search = state["web_search"]
-#     state["documents"]
-
-#     if web_search == "Yes":
-#         # All documents have been filtered check_relevance
-#         # We will re-generate a new query
-#         print(
-#             "---DECISION: ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, TRANSFORM QUERY---"
-#         )
-#         return "transform_query"
-#     else:
-#         # We have relevant documents, so generate answer
-#         print("---DECISION: GENERATE---")
-#         return "generate"
 
 
 
