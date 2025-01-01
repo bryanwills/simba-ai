@@ -3,10 +3,7 @@ from langgraph.graph import END, StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
 from services.flow_functions import *
 from services.classes.state_class import State
-from dotenv import load_dotenv
 
-
-load_dotenv() 
 workflow = StateGraph(State)
 
 
@@ -43,9 +40,6 @@ workflow.add_conditional_edges(
     },
 )
 workflow.add_edge("transform_query", END)
-
-
-
 
 
 # Compile

@@ -42,9 +42,12 @@ def get_embeddings(
         >>> embeddings = get_embeddings("huggingface", "sentence-transformers/all-mpnet-base-v2")
         >>> embeddings = get_embeddings("openai", dimensions=384)
     """
+
+    #TODO: integrate litellm 
+    
     # Use settings if not explicitly provided
-    provider = provider or settings.embedding.provider
-    model_name = model_name or settings.embedding.model_name
+    provider = provider or settings.embeddings.provider
+    model_name = model_name or settings.embeddings.model_name
 
     if provider not in SUPPORTED_PROVIDERS:
         raise ValueError(
@@ -56,7 +59,7 @@ def get_embeddings(
         if provider == "openai":
             return OpenAIEmbeddings(
                 model=model_name,
-                **settings.embedding.additional_params,
+                **settings.embeddings.additional_params,
                 **kwargs
             )
 
@@ -64,7 +67,7 @@ def get_embeddings(
             return HuggingFaceEmbeddings(
                 model_name=model_name or "sentence-transformers/all-mpnet-base-v2",
                 model_kwargs={"device": "cuda" if kwargs.get("use_gpu") else "cpu"},
-                **settings.embedding.additional_params,
+                **settings.embeddings.additional_params,
                 **kwargs
             )
 
@@ -73,14 +76,14 @@ def get_embeddings(
                 model_name=model_name or "BAAI/bge-large-en",
                 model_kwargs={"device": "cuda" if kwargs.get("use_gpu") else "cpu"},
                 encode_kwargs={"normalize_embeddings": True},
-                **settings.embedding.additional_params,
+                **settings.embeddings.additional_params,
                 **kwargs
             )
 
         elif provider == "cohere":
             return CohereEmbeddings(
                 model=model_name or "embed-english-v3.0",
-                **settings.embedding.additional_params,
+                **settings.embeddings.additional_params,
                 **kwargs
             )
 

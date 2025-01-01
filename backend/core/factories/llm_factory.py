@@ -1,6 +1,6 @@
 from functools import lru_cache
 from langchain_openai import ChatOpenAI
-from core.config import settings, LLMConfig, VectorStoreConfig
+from core.config import settings, LLMConfig
 from typing import Optional
 
 
@@ -35,24 +35,24 @@ def get_llm (LLMConfig: Optional[LLMConfig] = None):
             streaming=LLMConfig.streaming
         )
     else:
-        if settings.LLM.provider == "openai":
+        if settings.llm.provider == "openai":
             try:
                 return ChatOpenAI(
-                    model_name=settings.LLM.model_name,
-                    temperature=settings.LLM.temperature,
-                    api_key=settings.LLM.api_key,
-                    streaming=settings.LLM.streaming
+                    model_name=settings.llm.model_name,
+                    temperature=settings.llm.temperature,
+                    api_key=settings.llm.api_key,
+                    streaming=settings.llm.streaming
                 )
             except Exception as e:
                 print(f"Error initializing LLM: {e}, openai is not supported")
                 raise e
     
-        elif settings.LLM.provider == "anthropic":
+        elif settings.llm.provider == "anthropic":
             return """ChatAnthropic(
-                model=settings.LLM.model_name,
-                temperature=settings.LLM.temperature,
-                api_key=settings.LLM.api_key,
-                streaming=settings.LLM.streaming
+                model=settings.llm.model_name,
+                temperature=settings.llm.temperature,
+                api_key=settings.llm.api_key,
+                streaming=settings.llm.streaming
             )"""
     
     raise ValueError(f"Unsupported LLM provider: {settings.LLM.provider}")
