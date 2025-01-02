@@ -13,3 +13,5 @@ __pycache__
 htmlcov/
 .python-version
 .DS_Store
+.documents/
+.markdownOld/

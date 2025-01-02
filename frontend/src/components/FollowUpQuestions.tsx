@@ -5,50 +5,26 @@ import { cn } from "@/lib/utils";
 
 interface FollowUpQuestionsProps {
   questions: string[];
-  onQuestionClick: (question: string) => void;
+  onQuestionClick?: (question: string) => void;
   className?: string;
-  streaming?: boolean;
 }
 
-const FollowUpQuestions: React.FC<FollowUpQuestionsProps> = ({
-  questions,
+const FollowUpQuestions: React.FC<FollowUpQuestionsProps> = ({ 
+  questions, 
   onQuestionClick,
-  className,
-  streaming
+  className 
 }) => {
-  if (!questions.length) return null;
-
-  // Don't show the component while streaming unless we have the loading placeholder
-  if (streaming && !questions.includes('...')) return null;
-
   return (
-    <div className={cn("mt-2 space-y-2", className)}>
-      <div className="flex items-center gap-2 text-xs text-gray-500">
-        <MessageSquarePlus className="h-3 w-3" />
-        <span>Follow-up questions</span>
-      </div>
-      <div className={cn(
-        "flex flex-wrap gap-2",
-        streaming && "animate-pulse"
-      )}>
-        {questions.map((question, index) => (
-          <Button
-            key={`${question}-${index}`}
-            variant="outline"
-            size="sm"
-            className={cn(
-              "text-xs border-gray-200",
-              streaming 
-                ? "bg-gray-50 text-gray-400 cursor-wait" 
-                : "bg-gray-50 hover:bg-gray-100 text-gray-700"
-            )}
-            onClick={() => !streaming && onQuestionClick(question)}
-            disabled={streaming}
-          >
-            {question}
-          </Button>
-        ))}
-      </div>
+    <div className={cn("space-y-2", className)}>
+      {questions.map((question, index) => (
+        <button
+          key={index}
+          onClick={() => onQuestionClick?.(question)}
+          className="block w-full text-left p-2 rounded border hover:bg-gray-50 whitespace-pre-line text-sm"
+        >
+          {question}
+        </button>
+      ))}
     </div>
   );
 };

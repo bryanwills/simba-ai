@@ -5,6 +5,7 @@ import os
 from .retrieval_agent import Retrieval
 from pydantic import BaseModel, Field
 
+#TODO: grader needs refactoring
 
 # Data model for grading
 class GradeDocuments(BaseModel):
@@ -42,8 +43,9 @@ class RetrievalGrader:
         Create the grading prompt used for assessing the relevance of documents.
         """
         system = """You are a grader assessing the relevance of a retrieved document to a user question.
-        If the document contains keyword(s) or semantic meaning related to the question, grade it as relevant.
-        Give a binary score 'yes' or 'no' score to indicate whether the document is relevant to the question."""
+Output:
+
+Return a binary score ('yes' or 'no') based on whether the document provides relevant information in its tables."""
 
         return ChatPromptTemplate.from_messages(
             [

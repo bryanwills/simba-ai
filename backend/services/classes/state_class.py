@@ -18,4 +18,5 @@ class State(TypedDict):
     llm_output : str
     suggestions: list[str]
     products:list[str]
+    is_greeting:bool
 

@@ -1,6 +1,8 @@
 
 # MigiBot
 
+<a href="https://ibb.co/RHkRGcs"><img src="https://i.ibb.co/ryRDKHz/logo.jpg" alt="logo" border="0"></a>
+
 A Role-Based Retrieval Augmented Generation (RAG) System for Enterprise Information Management
 
 ## Overview
@@ -37,6 +39,11 @@ docker-compose down --volumes
 docker system prune -a --volumes
 docker-compose build --no-cache
 docker-compose up
+```
+
+## How to run in production
+```
+docker-compose -f docker-compose.prod.yml up --build
 ```
 
 navigate to http://localhost:5173 to access the frontend

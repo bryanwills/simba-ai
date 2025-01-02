@@ -1,11 +1,9 @@
+import io
 from langgraph.graph import END, StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
 from services.flow_functions import *
 from services.classes.state_class import State
-from dotenv import load_dotenv
 
-
-load_dotenv() 
 workflow = StateGraph(State)
 
 
@@ -14,6 +12,7 @@ workflow = StateGraph(State)
 memory = MemorySaver()   
 
 # Define the nodes
+workflow.add_node("greeting", greeting)
 workflow.add_node("retrieve", retrieve)  # retrieve
 workflow.add_node("grade_documents", grade_documents)  # grade documents
 workflow.add_node("generate", generate)  # generatae
@@ -21,21 +20,26 @@ workflow.add_node("transform_query", question_writer)  # transform_query
 # workflow.add_node("web_search_node", web_search)  # web search
 
 # Build graph
-workflow.add_edge(START, "retrieve")
+workflow.add_edge(START, "greeting")
+workflow.add_conditional_edges(
+    "greeting",
+    decide_is_greeting,
+    {
+        "true": "generate",
+        "false": "retrieve",
+    },
+)
 workflow.add_edge("retrieve", "grade_documents")
-# workflow.add_conditional_edges(
-#     "grade_documents",
-#     decide_to_generate,
-#     {
-#         "transform_query": "transform_query",
-#         "generate": "generate",
-#     },
-# )
 workflow.add_edge("grade_documents", "generate")
-workflow.add_edge("generate", "transform_query")
+workflow.add_conditional_edges(
+    "generate",
+    decide_is_greeting,
+    {
+        "true": END,
+        "false": "transform_query",
+    },
+)
 workflow.add_edge("transform_query", END)
-
-
 
 
 # Compile
