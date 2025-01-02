@@ -8,6 +8,7 @@ from langchain.prompts import PromptTemplate
 from core.config import settings
 from difflib import SequenceMatcher
 import uuid
+from langchain import hub
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -17,15 +18,7 @@ def similarity_score(a: str, b: str) -> float:
     return SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
 # Prompt for detecting if a message is a greeting
-greeting_detection_prompt = PromptTemplate.from_template("""
-    Tu es un assistant qui identifie si une question est une salutation (greeting).  
-    Voici ce que tu dois faire :  
-    - Réponds uniquement par "GREETING" si la question est une salutation comme "bonjour", "salut", "hello", "salam" ou toute autre forme de salutation.  
-    - Réponds uniquement par "NOT_GREETING" si ce n'est pas une salutation.
-
-    Question : {question}
-    Réponse :
-    """)
+greeting_detection_prompt = hub.pull("greeting_detection_prompt:258c6a52")
 
 # Model used for greeting detection
 llm_detection = ChatOpenAI(model_name="gpt-4o", temperature=0)
@@ -47,18 +40,8 @@ def detect_language(question: str) -> str:
     'OTHER' sinon.
     """
     llm_lang = ChatOpenAI(model_name="gpt-4o", temperature=0)
-    language_detection_prompt = ChatPromptTemplate.from_messages([
-        (
-            "system",
-            "Tu es un détecteur de langue. Indique simplement 'DAR' si la langue est Darija marocaine,'AR' si la langue est Arabe, "
-            "'FR' pour français, et 'OTHER' pour toute autre langue."
-        ),
-        (
-            "human",
-            "Voici le texte : {question}. Quelle est la langue ? "
-            "Réponds uniquement par 'DAR', 'AR', 'FR' ou 'OTHER'."
-        )
-    ])
+    language_detection_prompt  = hub.pull("language_detection_prompt")
+    
     chain = language_detection_prompt | llm_lang | StrOutputParser()
     detected_language = chain.invoke({"question": question}).strip()
     return detected_language
