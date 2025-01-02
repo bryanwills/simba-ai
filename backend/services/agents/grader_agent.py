@@ -5,6 +5,7 @@ import os
 from .retrieval_agent import Retrieval
 from pydantic import BaseModel, Field
 
+#TODO: grader needs refactoring
 
 # Data model for grading
 class GradeDocuments(BaseModel):
