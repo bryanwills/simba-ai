@@ -182,6 +182,47 @@ const ChatApp: React.FC<ChatAppProps> = ({ messages, setMessages }) => {
     handleSubmit(fakeEvent);
   };
 
+  const handleStreamingMessage = (chunk: string) => {
+    try {
+      // Try to parse as JSON first
+      const jsonData = JSON.parse(chunk);
+      if (jsonData.status === "end") return;
+      
+      setMessages(prevMessages => {
+        const lastMessage = prevMessages[prevMessages.length - 1];
+        if (lastMessage && lastMessage.streaming) {
+          // Convert numbers to strings if present
+          const newText = typeof jsonData.content === 'number' 
+            ? lastMessage.text + jsonData.content.toString()
+            : lastMessage.text + (jsonData.content || '');
+
+          return [
+            ...prevMessages.slice(0, -1),
+            { ...lastMessage, text: newText }
+          ];
+        }
+        return prevMessages;
+      });
+    } catch (e) {
+      // If not JSON, treat as regular text
+      setMessages(prevMessages => {
+        const lastMessage = prevMessages[prevMessages.length - 1];
+        if (lastMessage && lastMessage.streaming) {
+          // Handle potential number strings
+          const newText = !isNaN(Number(chunk)) 
+            ? lastMessage.text + chunk
+            : lastMessage.text + chunk;
+
+          return [
+            ...prevMessages.slice(0, -1),
+            { ...lastMessage, text: newText }
+          ];
+        }
+        return prevMessages;
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-gray-50">
       {/* Messages Area */}

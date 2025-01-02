@@ -19,6 +19,8 @@ fastapi = "^0.115.6"
 markdown = "^3.7"
 unstructured = "^0.16.11"
 langchain-chroma = "^0.1.4"
+markitdown = "^0.0.1a3"
+
 
 
 [build-system]

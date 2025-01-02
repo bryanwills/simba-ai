@@ -1,60 +1,40 @@
+from core.factories.llm_factory import get_llm
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from pydantic import BaseModel, Field
 from typing import List
-from dotenv import load_dotenv
-import os
+
 from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import ChatPromptTemplate
 
-# Load environment variables from .env file
-load_dotenv()
+from langchain_core.prompts import PromptTemplate
+from langchain import hub
+from services.agents.retrieval_agent import Retrieval
+
 # Pydantic model for input data validation
 class GenerationInput(BaseModel):
     context: List[str] = Field(..., description="The list of documents' content for the context")
     question: str = Field(..., description="The question that needs to be answered based on the context")
 
-
-
 # Class implementation
 class RAGGenerator:
-    def __init__(self, model_name: str = "gpt-4o", temperature: float = 0):
+    def __init__(self, is_greeting = False):
 
-
-        # Define the prompt template with the correct variables
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are a helpful assistant. Use the following context to answer questions. Consider the chat history to provide relevant and contextual responses:\n\n{context}"),
-            ("human", "{chat_history}\n\nQuestion: {question}")
-        ])
-
-        
-        # Pull the prompt from the hub
-        self.prompt = prompt
-
-        # Initialize the language model
-        self.llm = ChatOpenAI(
-                            model_name="gpt-4o",
-                            temperature=0, 
-                            openai_api_key=os.getenv('OPENAI_API_KEY'),
-                            streaming=True
-                            )
-
-        
-        # Output parser
-        self.output_parser = StrOutputParser()
-        
-        # Chain the prompt, LLM, and output parser together
-        # self.rag_chain = self.prompt | self.llm | self.output_parser
-        # Initialize the conversation chain with correct configuration
-        
-        
+        self.is_greeting = is_greeting
+        self.llm = get_llm()
+      
+        message_rag = hub.pull("generate_prompt")
+        self.prompt = PromptTemplate.from_template(message_rag)
+    
 
     @staticmethod
     def format_docs(docs: List[str]) -> str:
         """
         Format the list of document contents into a single string.
+        Preserves markdown formatting in the documents.
         """
-        return "\n\n".join(docs)
+        # Join with double newlines to maintain markdown paragraph spacing
+        return "\n\n".join(doc.strip() for doc in docs)
 
     def invoke(self, input_data: dict):
         """
@@ -63,6 +43,9 @@ class RAGGenerator:
         context = input_data.get('context', [])
         question = input_data.get('question', '')
         messages = input_data.get('messages', [])[:-1]
+        products = input_data.get('products', [])
+        gretting_message = input_data.get('gretting_message')
+        
         
         if hasattr(context, 'page_content'):
             page_contents = [context.page_content]
@@ -73,10 +56,14 @@ class RAGGenerator:
 
         chain = self.prompt | self.llm
 
+        
         inputs = {
             "context": formatted_content,
             "question": question,
-            "chat_history": messages
+            "chat_history": messages,
+            "products": products,
+            "gretting_message":gretting_message
+
         }
         
         return chain.invoke(inputs)
@@ -91,10 +78,23 @@ if __name__ == "__main__":
         "Here is the content of document 2.",
         "The content of document 3 goes here."
     ]
-    question = "What information is contained in these documents?"
+   
+    question = "le tarif amanea pro pour un bien de 4 millions et catégorie D"
 
     # Create an instance of GenerationInput
     input_data = GenerationInput(context=docs, question=question)
+
+    service = Retrieval()
+    user_query = "le tarif amanea pro pour un bien de 4 millions et catégorie D"
+    documents=service.invoke(user_query)
+    
+
+
+    input_data = {
+        "question": question,
+        "context": documents,
+        
+        }
 
     # Create an instance of RAGGenerator
     rag_generator = RAGGenerator()

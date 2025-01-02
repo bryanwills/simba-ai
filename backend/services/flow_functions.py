@@ -1,4 +1,6 @@
 import os
+from typing import Any, Dict
+from services.agents.greeting_agent import generate_dynamic_greeting, process_greeting
 from langchain.schema import Document
 from services.agents.retrieval_agent import Retrieval
 from services.agents.summary_writer_agent import SummaryWriter,DocumentsInput
@@ -6,7 +8,20 @@ from services.agents.rag_generator_agent import RAGGenerator
 from services.agents.grader_agent import RetrievalGrader
 from services.agents.question_writer_agent import QuestionInput, QuestionRewriter
 from services.agents.web_search_agent import TavilySearchTool
+from langchain.memory import ConversationBufferMemory
 
+def greeting(state):
+    print("---GREETING---")
+    question = state["question"]
+    result = process_greeting(question,"")
+    result_response = result.get("response")
+    result_is_greeting=result.get("is_greeting")
+    print(f"result greeting: {result}")
+    print(f"flag greetting function greeting {result_is_greeting}")
+    documents = Document(page_content = result_response)
+
+    
+    return {"generation": result_response, "documents": documents, "question": question, "filenames" : [],"products":[], "is_greeting":result_is_greeting}
 
 def retrieve(state):
     """
@@ -20,10 +35,15 @@ def retrieve(state):
     """
     print("---RETRIEVE---")
     question = state["question"]
+    messages = state["messages"] #History of the conversation
 
-    # Retrieval
-    retriever=Retrieval()
-    documents = retriever.invoke(user_query=question)
+    # Retrieval with conversation history
+    retriever = Retrieval()
+    # Format conversation history into a single string
+    conversation_context = "\n".join([f"{msg.content}" for msg in messages])
+    # Combine current question with conversation history
+    augmented_query = f"Current question: {question}\nConversation history:\n{conversation_context}"
+    documents = retriever.invoke(user_query=augmented_query)
 
     # Extracting page_content from the documents
     filenames = [doc.metadata.get('source') for doc in documents]
@@ -57,6 +77,7 @@ def summary_writer(state):
     return {"documents": documents}
 
 
+
 def generate(state):
     """
     Generate answer
@@ -71,14 +92,18 @@ def generate(state):
     question = state["question"]
     documents = state["documents"]
     messages = state["messages"]
-
+    products= state["filenames"]
+    is_greeting=state["is_greeting"]
+    gretting_message=state["generation"]
+    
+    print(f"flag is_greeting function flow generare {is_greeting}")
     # RAG generation
-    rag_chain = RAGGenerator()
-    generation = rag_chain.invoke({"context": documents, "question": question, "messages": messages})
+    rag_chain = RAGGenerator(is_greeting=is_greeting)
+    generation = rag_chain.invoke({"context": documents, "question": question, "messages": messages, "products":products, "gretting_message":gretting_message, "is_greeting":is_greeting} )
     return {"generation": generation}
 
-    # async for chunk in rag_chain.astream({"context": documents, "question": question}):
-    #     yield chunk
+
+
 
 
 def grade_documents(state):
@@ -95,7 +120,8 @@ def grade_documents(state):
     print("---CHECK DOCUMENT RELEVANCE TO QUESTION---")
     question = state["question"]
     documents = state["documents"]
-    filenames = state["filenames"]
+    # filenames = state["filenames"]
+    filenames = []
 
     # Score each doc
     retrieval_grader=RetrievalGrader()
@@ -109,6 +135,7 @@ def grade_documents(state):
         if grade == "yes":
             print("---GRADE: DOCUMENT RELEVANT---")
             filtered_docs.append(d)
+            filenames.append(d.metadata.get('source'))
         else:
             print("---GRADE: DOCUMENT NOT RELEVANT---")
             # web_search = "Yes"
@@ -169,10 +196,8 @@ def web_search(state):
     return {"documents": documents, "question": question}
 
 
-### Edges
 
-
-def decide_to_generate(state):
+def decide_is_greeting(state):
     """
     Determines whether to generate an answer, or re-generate a question.
 
@@ -182,20 +207,9 @@ def decide_to_generate(state):
     Returns:
         str: Binary decision for next node to call
     """
-
-    print("---ASSESS GRADED DOCUMENTS---")
-    state["question"]
-    web_search = state["web_search"]
-    state["documents"]
-
-    if web_search == "Yes":
-        # All documents have been filtered check_relevance
-        # We will re-generate a new query
-        print(
-            "---DECISION: ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, TRANSFORM QUERY---"
-        )
-        return "transform_query"
+    is_greeting = state["is_greeting"]
+    print(is_greeting)
+    if is_greeting:
+        return "true"
     else:
-        # We have relevant documents, so generate answer
-        print("---DECISION: GENERATE---")
-        return "generate"
+        return "false"

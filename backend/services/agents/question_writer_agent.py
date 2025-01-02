@@ -1,15 +1,10 @@
+from core.factories.llm_factory import get_llm
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 import os
 from pydantic import BaseModel, Field
 from langchain_core.output_parsers import StrOutputParser
-
-# Load environment variables from .env file
-load_dotenv()
-
-if not os.getenv('OPENAI_API_KEY'):
-    raise ValueError("OPENAI_API_KEY environment variable not found. Please set it in the .env file.")
 
 # Pydantic model to enforce input formatting
 class QuestionInput(BaseModel):
@@ -19,9 +14,9 @@ class QuestionInput(BaseModel):
 
 # Class that implements the invocation process
 class QuestionRewriter:
-    def __init__(self, model_name: str = "gpt-4o", temperature: float = 0):
+    def __init__(self):
         # Initialize the LLM with the correct model name
-        self.llm = ChatOpenAI(model_name=model_name, temperature=temperature, openai_api_key=os.getenv('OPENAI_API_KEY'), streaming=True)
+        self.llm = get_llm()
         
         # Prompt setup
         system_message = """You are a question re-writer that converts an input question to a better version optimized for web search.
@@ -85,23 +80,56 @@ class QuestionRewriter:
             content = file.read()
 
         # Define the prompt for the LLM
-        prompt = (
-                "You are given a question asked by a user. The question is '{user_question}'. "
-                "First, determine the language used in the question and refer to it as 'lang'. "
-                "You should then respond in 'lang'. Do not print language or 'lang'. "
-                "You are an expert user extracting information to quiz people on documentation. "
-                "Use the user question as a reference to extract tasks. "
-                "Please analyze the following text and write **exactly three questions** "
-                "that can be answered solely based on the given text. "
-                "If the question is not in English, then respond in French:\n\n"
-            )
+    #     prompt = (
+    #             "You are given a question asked by a user. The question is '{user_question}'. "
+    #             "First, determine the language used in the question and refer to it as 'lang'. "
+    #             "You should then respond in 'lang'. Do not print language or 'lang'. "
+    #             "You are an expert user extracting information to quiz people on documentation. "
+    #             "Use the user question as a reference to extract tasks. "
+    #             "Please analyze the following text and write **exactly three questions** "
+    #             "that can be answered solely based on the given text. "
+    #             "If the question is not in English, then respond in French:\n\n"
+    #         )
+        
+    #     prompt = """
+    #    Question : la question que vous devez répondre
+    #    Réflexion : vous devez toujours réfléchir à ce qu'il faut faire
+    #    Action : l'action à entreprendre, doit être basée sur {context}
+    #    Entrée d'Action : l'entrée à fournir pour l'action
+    #    Observation : le résultat de l'action
+    #    ... (ce cycle Réflexion/Action/Entrée d'Action/Observation peut se répéter N fois)
+    #    Réflexion : je connais maintenant la réponse finale
+    #    Instruction : Fournissez uniquement la réponse finale, sans afficher les étapes de réflexion ou d'action intermédiaires.
+
+    #    Commencez !
+    #    Contexte : {context}
+    #    Question : {user_question}
+    
+    #    Réponse : (répondez dans la langue de la question, si la question est en Darija marocaine, répondez toujours en Darija.)
+       
+    #    """
+        
+        prompt = """
+        Vous êtes un expert chargé de répondre aux questions des utilisateurs en analysant un texte donné. Votre rôle est double : fournir une réponse précise à la question posée et, le cas échéant, générer exactement trois questions pertinentes qui peuvent être répondues uniquement à partir du texte fourni. 
+
+        ### Instructions :
+        1. **Langue** : Déterminez la langue utilisée dans la question ('lang') et répondez uniquement dans cette langue. Si la question est en Darija marocaine, répondez toujours en Darija.
+        2. **Réponse directe** : Fournissez uniquement la réponse finale sans inclure de réflexion, étapes intermédiaires ou actions visibles.
+        3. **Création de questions** : Rédigez trois questions exactement, adaptées au contenu du texte fourni, et dans la langue de la question initiale.
+
+        ### Format :
+        Question : {user_question}
+        Contexte : {content}
+
+        Réponse : 
+        """
 
         questionner_prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", prompt),
                 (
                     "human",
-                    "Here is the reference markdown file: \n\n {content} \n Formulate exactly three questions based on the text.",
+                    "Voici le fichier markdown de référence : \n\n {content} \n Formulez exactement trois questions basées sur ce texte.",
                 ),
             ]
             )
