@@ -4,3 +4,4 @@ __pycache__
 .DS_Store
 core/__pycache__/*
 faiss_index/
+.vscode

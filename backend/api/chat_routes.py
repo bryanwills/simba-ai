@@ -45,6 +45,11 @@ async def invoke_graph(query: Query = Body(...)):
                 metadata = event.get("metadata", {})
                 event_type = event.get("event")
                 key=metadata.get("langgraph_node")
+
+                # Only stream for specific nodes
+                allowed_nodes = ["generate","transform_query"]
+                if key not in allowed_nodes:
+                    continue
                 
 
                 if event_type == "on_chat_model_start":      
