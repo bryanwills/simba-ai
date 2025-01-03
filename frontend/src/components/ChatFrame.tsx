@@ -1,75 +1,177 @@
-import React, { useState, useEffect } from 'react';
-import ChatApp from '@/pages/ChatApp';
-import { cn } from "@/lib/utils";
-import { MoreVertical, RotateCw } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import React, { useState, useRef, useEffect } from 'react';
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Send } from 'lucide-react';
+import ChatMessage from '../components/ChatMessage';
 import { Message } from '@/types/chat';
+import Thinking from '@/components/Thinking';
+import { sendMessage, handleChatStream } from '@/lib/api';
 
-const ChatFrame: React.FC = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+interface ChatFrameProps {
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+}
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+const ChatFrame: React.FC<ChatFrameProps> = ({ messages, setMessages }) => {
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleClearMessages = () => {
-    setMessages([]);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleEndDiscussion = () => {
-    handleClearMessages();
-    window.parent.postMessage({ type: 'CLOSE_CHAT' }, '*');
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputMessage.trim() || isLoading) return;
+
+    const userTimestamp = Date.now();
+    const botTimestamp = userTimestamp + 1;
+    
+    // Add user message
+    const userMessage: Message = {
+      id: `user-${userTimestamp}`,
+      role: 'user',
+      content: inputMessage.trim(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsThinking(true);
+    setInputMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await sendMessage(userMessage.content);
+      
+      // Add assistant message placeholder
+      const assistantMessage: Message = {
+        id: `assistant-${botTimestamp}`,
+        role: 'assistant',
+        content: '',
+        streaming: true,
+        followUpQuestions: []
+      };
+      
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsThinking(false);
+
+      let currentResponse = '';
+
+      await handleChatStream(
+        response,
+        (chunk) => {
+          try {
+            const data = JSON.parse(chunk);
+            
+            if (data.node === "transform_query" && data.status === "end") {
+              // Mise à jour des questions de suivi
+              setMessages(prev => {
+                const lastMessage = prev[prev.length - 1];
+                if (lastMessage && lastMessage.id === assistantMessage.id) {
+                  return [
+                    ...prev.slice(0, -1),
+                    { 
+                      ...lastMessage, 
+                      followUpQuestions: data.followUpQuestions || []
+                    }
+                  ];
+                }
+                return prev;
+              });
+              return;
+            }
+          } catch (e) {
+            // Si ce n'est pas du JSON, c'est du contenu de message
+            currentResponse += chunk;
+            setMessages(prev => {
+              const lastMessage = prev[prev.length - 1];
+              if (lastMessage && lastMessage.id === assistantMessage.id) {
+                return [
+                  ...prev.slice(0, -1),
+                  { 
+                    ...lastMessage, 
+                    content: currentResponse
+                  }
+                ];
+              }
+              return prev;
+            });
+          }
+        },
+        () => {
+          setMessages(prev => {
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage && lastMessage.id === assistantMessage.id) {
+              return [
+                ...prev.slice(0, -1),
+                { ...lastMessage, streaming: false }
+              ];
+            }
+            return prev;
+          });
+          setIsLoading(false);
+        }
+      );
+
+    } catch (error) {
+      console.error('Error:', error);
+      setMessages(prev => [...prev, {
+        id: `error-${Date.now()}`,
+        role: 'assistant',
+        content: 'Sorry, something went wrong. Please try again.',
+      }]);
+      setIsLoading(false);
+      setIsThinking(false);
+    }
+  };
+
+  const handleFollowUpClick = (question: string) => {
+    setInputMessage(question);
+    const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+    handleSubmit(fakeEvent);
   };
 
   return (
-    <div className="fixed inset-0 flex">
-      <div className={cn(
-        "bg-white shadow-xl flex flex-col w-full",
-        isMobile ? "h-full" : "max-w-[400px] h-full ml-auto"
-      )}>
-        <div className="bg-[#0066b2] text-white py-2 px-4 flex items-center justify-between shrink-0">
-          <h1 className="text-xl font-semibold">Ass-IA</h1>
-          
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="hover:bg-[#0077cc] p-1 rounded">
-                <MoreVertical className="h-5 w-5" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleClearMessages}>
-                  Nouvelle discussion
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleEndDiscussion}>
-                  Terminer la discussion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+    <Card className="h-full flex flex-col">
+      <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((message) => (
+          <ChatMessage
+            key={message.id}
+            isAi={message.role === 'assistant'}
+            message={message.content}
+            streaming={message.streaming}
+            followUpQuestions={message.followUpQuestions}
+            onFollowUpClick={handleFollowUpClick}
+          />
+        ))}
+        {isThinking && <Thinking />}
+        <div ref={messagesEndRef} />
+      </CardContent>
 
-            <button 
-              onClick={handleClearMessages}
-              className="hover:bg-[#0077cc] p-1 rounded"
-            >
-              <RotateCw className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-hidden">
-          <ChatApp messages={messages} setMessages={setMessages} />
-        </div>
-      </div>
-    </div>
+      <CardFooter className="p-4 border-t">
+        <form onSubmit={handleSubmit} className="flex w-full gap-2">
+          <Input
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder="Type a message..."
+            disabled={isLoading}
+          />
+          <Button 
+            type="submit" 
+            disabled={isLoading || !inputMessage.trim()}
+            className="bg-[#0066b2] hover:bg-[#0077cc]"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </form>
+      </CardFooter>
+    </Card>
   );
 };
 

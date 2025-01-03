@@ -1,10 +1,9 @@
 import React from 'react';
-import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
-import FollowUpQuestions from './FollowUpQuestions';
 import chatbotIcon from "../assets/chatbot-icon.svg";
+import FollowUpQuestions from './FollowUpQuestions';
 
 interface ChatMessageProps {
   isAi: boolean;
@@ -62,13 +61,12 @@ const ChatMessage = ({
               >
                 {cleanMessage}
               </ReactMarkdown>
-              {followUpQuestions.length > 0 && (
-                <div className="mt-4 whitespace-pre-line">
-                  <p className="text-sm font-medium mb-2">Suggestions:</p>
+              
+              {followUpQuestions && followUpQuestions.length > 0 && (
+                <div className="mt-4">
                   <FollowUpQuestions 
-                    questions={followUpQuestions.map(q => q.trim())}
-                    onQuestionClick={onFollowUpClick} 
-                    className="whitespace-pre-line"
+                    questions={followUpQuestions}
+                    onQuestionClick={onFollowUpClick}
                   />
                 </div>
               )}
