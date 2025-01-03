@@ -24,7 +24,7 @@ class RAGGenerator:
         self.llm = get_llm()
       
         message_rag = hub.pull("generate_prompt")
-        self.prompt = PromptTemplate.from_template(message_rag)
+        self.prompt = message_rag
     
 
     @staticmethod

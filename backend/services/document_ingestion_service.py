@@ -80,7 +80,7 @@ class DocumentIngestionService:
 
 if __name__ == "__main__":
     document_ingestion_service = DocumentIngestionService()
-    document_ingestion_service.ingest_markdowns()       
+    # document_ingestion_service.ingest_markdowns()       
     vector_store = VectorStoreService()
     print(vector_store.count_documents())
 

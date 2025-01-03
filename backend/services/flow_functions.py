@@ -3,11 +3,10 @@ from typing import Any, Dict
 from services.agents.greeting_agent import generate_dynamic_greeting, process_greeting
 from langchain.schema import Document
 from services.agents.retrieval_agent import Retrieval
-from services.agents.summary_writer_agent import SummaryWriter,DocumentsInput
 from services.agents.rag_generator_agent import RAGGenerator
 from services.agents.grader_agent import RetrievalGrader
 from services.agents.question_writer_agent import QuestionInput, QuestionRewriter
-from services.agents.web_search_agent import TavilySearchTool
+
 from langchain.memory import ConversationBufferMemory
 
 def greeting(state):
@@ -147,13 +146,15 @@ def grade_documents(state):
 
 def question_writer(state):
     """
-    Transform the query to produce a better question.
+    Generates follow-up questions based on the AI's response and context.
 
     Args:
-        state (dict): The current graph state
+        state (dict): The current graph state containing the question, documents,
+                     and generated response
 
     Returns:
-        state (dict): Updates question key with a re-phrased question
+        state (dict): Updates state with follow-up questions that can be asked
+                     based on the available context
     """
 
     print("---TRANSFORM QUERY---")
@@ -164,36 +165,16 @@ def question_writer(state):
 
     # Re-write question
 
-    question_to_rewrite = QuestionInput(question=question,filenames=filenames,products=products)
+    follow_up_questions_input = QuestionInput(
+        question=question,
+        filenames=filenames,    
+        products=products
+    )
 
-    question_rewriter=QuestionRewriter()
-    better_question = question_rewriter.invoke(question_to_rewrite)
-    return {"documents": documents, "question": question, "suggestions" : better_question}
+    follow_up_questions_rewriter= QuestionRewriter()
+    follow_up_questions = follow_up_questions_rewriter.invoke(follow_up_questions_input)
+    return {"documents": documents, "question": question, "suggestions" : follow_up_questions}
 
-
-def web_search(state):
-    """
-    Web search based on the re-phrased question.
-
-    Args:
-        state (dict): The current graph state
-
-    Returns:
-        state (dict): Updates documents key with appended web results
-    """
-
-    print("---WEB SEARCH---")
-    question = state["question"]
-    documents = state["documents"]
-
-    # Web search
-    web_search_tool=TavilySearchTool()
-    docs = web_search_tool.invoke({"query": question})
-    web_results = "\n".join([d["content"] for d in docs])
-    web_results = Document(page_content=web_results)
-    documents.append(web_results)
-
-    return {"documents": documents, "question": question}
 
 
 
