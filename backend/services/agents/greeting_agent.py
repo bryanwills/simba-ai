@@ -1,3 +1,4 @@
+from core.factories.llm_factory import get_llm
 from langchain_openai import ChatOpenAI
 from langchain.agents import Tool
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -14,11 +15,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def GreetingAgent():
+    def __init__(self):
+        self.llm = get_llm()
+        self.prompt = hub.pull("greeting_detection_prompt")
+
+    def invoke(self, input_data: str) -> str:
+        chain = self.prompt | self.llm | StrOutputParser()
+        return chain.invoke({"question": input_data}).strip()
+
 def similarity_score(a: str, b: str) -> float:
     return SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
 # Prompt for detecting if a message is a greeting
-greeting_detection_prompt = hub.pull("greeting_detection_prompt:258c6a52")
+greeting_detection_prompt = hub.pull("greeting_detection_prompt")
 
 # Model used for greeting detection
 llm_detection = ChatOpenAI(model_name="gpt-4o", temperature=0)
@@ -41,7 +51,7 @@ def detect_language(question: str) -> str:
     """
     llm_lang = ChatOpenAI(model_name="gpt-4o", temperature=0)
     language_detection_prompt  = hub.pull("language_detection_prompt")
-    
+
     chain = language_detection_prompt | llm_lang | StrOutputParser()
     detected_language = chain.invoke({"question": question}).strip()
     return detected_language
