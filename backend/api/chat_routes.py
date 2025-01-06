@@ -61,7 +61,7 @@ async def invoke_graph(query: Query = Body(...)):
                     
                 # Emit raw data for the streaming events
                 elif event_type == "on_chat_model_stream":
-                    chunk = event["data"]["chunk"].content
+                    chunk = event["data"]["chunk"].content  
                     
                    
                     # Buffer numeric chunks until we get non-numeric content
