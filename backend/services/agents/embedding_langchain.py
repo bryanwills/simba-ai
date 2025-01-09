@@ -1,8 +1,5 @@
 from core.factories.embeddings_factory import get_embeddings
-<<<<<<< Updated upstream
-=======
 from core.factories.vectorstore_factory import VectorStoreFactory
->>>>>>> Stashed changes
 from langchain.text_splitter import CharacterTextSplitter, RecursiveCharacterTextSplitter
  
 
@@ -46,12 +43,8 @@ class CustomMarkdownLoader:
     
 class Embedding:
     def __init__(self):
-<<<<<<< Updated upstream
         # Load environment variables
         
-=======
-        self.embeddings = get_embeddings() 
->>>>>>> Stashed changes
         
         self.embeddings = get_embeddings() 
     

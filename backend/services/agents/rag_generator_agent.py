@@ -21,13 +21,11 @@ class RAGGenerator:
     def __init__(self, is_greeting = False):
 
         self.is_greeting = is_greeting
-<<<<<<< HEAD
         self.llm = get_llm()
       
         message_rag = hub.pull("generate_prompt")
         self.prompt = message_rag
     
-=======
         self.llm = get_llm()
       
         message_greeting = """
@@ -92,18 +90,11 @@ class RAGGenerator:
         # Pull the prompt from the hub
         self.prompt = prompt
 
-<<<<<<< Updated upstream
         # Initialize the language model
         self.llm = get_llm()
 
 
         
-        
-=======
-
-        
->>>>>>> Stashed changes
->>>>>>> 9ce89b7 (module)
 
     @staticmethod
     def format_docs(docs: List[str]) -> str:

@@ -1,10 +1,6 @@
 from core.factories.llm_factory import get_llm
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
-<<<<<<< HEAD
-=======
-from langchain_core.output_parsers import StrOutputParser
->>>>>>> 9ce89b7 (module)
 
 # Pydantic model to enforce input formatting
 class QuestionInput(BaseModel):
@@ -17,29 +13,6 @@ class QuestionRewriter:
     def __init__(self):
         # Initialize the LLM with the correct model name
         self.llm = get_llm()
-<<<<<<< HEAD
-=======
-        
-        # Prompt setup
-        system_message = """You are a question re-writer that converts an input question to a better version optimized for web search.
-        Always rewrite the question in the same language as the input text. If the input is in English, rewrite the question in English outherwise do not respond in English.
-        
-        Always give 3 questions with different contexts
-        
-        """
-        
-        self.prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", system_message),
-                (
-                    "human",
-                    "Here is the initial question: \n\n {question} \n Formulate an improved question.",
-                ),
-            ]
-        )
-        # Output parser
-        self.output_parser = StrOutputParser()
->>>>>>> 9ce89b7 (module)
 
         self.prompt  = ChatPromptTemplate.from_messages([
             ("system", 
@@ -56,7 +29,7 @@ class QuestionRewriter:
                     AI response : {ai_response}
                 """
              
-             )
+             ),
             (
                 "human",
                 "Voici le fichier markdown de référence : \n\n {context} \n Formulez exactement trois questions basées sur ce texte.",
