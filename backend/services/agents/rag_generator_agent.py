@@ -21,11 +21,89 @@ class RAGGenerator:
     def __init__(self, is_greeting = False):
 
         self.is_greeting = is_greeting
+<<<<<<< HEAD
         self.llm = get_llm()
       
         message_rag = hub.pull("generate_prompt")
         self.prompt = message_rag
     
+=======
+        self.llm = get_llm()
+      
+        message_greeting = """
+        Rewrite this greeting message without changing anything.
+        {gretting_message}
+
+        """
+
+        # message_rag = """
+        # Tu es un assistant intelligent spécialisé dans les produits et services d'assurance ATLANTASANAD fourni dans les documents.  
+        # Reponds à la question en proposant des solutions spécifiques et adaptées aux besoins décrits en se basant toujours et uniquement sur les documents fournis.
+
+        # Consignes pour structurer la réponse :
+        # - Répondez dans la langue de la question. Si la question est en Darija marocaine, répondez toujours en Darija.
+        # - Proposez plusieurs produits adaptés à la situation décrite dans la question.
+        # - Pour chaque produit, expliquez brièvement son objectif et ses avantages (limitez à 2-3 lignes par produit).
+        # - Adoptez un ton professionnel et accueillant.
+        # - Utilisez des puces pour énumérer les produits.
+        # - Si les informations disponibles sont insuffisantes, indiquez clairement que plus d'informations sont nécessaires.
+        # - utilise toujours l'historique des conversations pour repondre à la question.
+        # - La réponse doit obligatoirement contenir le nom du produit d'assurance.
+
+
+        # Contexte : {context}
+        # Question : {question}
+        # Historique : {chat_history}
+        # Produits d'assurance : {products}
+        # Réponse :
+        # """
+
+        message_rag = """
+       Question : la question que vous devez répondre
+       Réflexion : vous devez toujours réfléchir à ce qu'il faut faire
+       Action : l'action à entreprendre, doit être basée sur {context}
+       Entrée d'Action : l'entrée à fournir pour l'action
+       Observation : le résultat de l'action
+       ... (ce cycle Réflexion/Action/Entrée d'Action/Observation peut se répéter N fois)
+       Réflexion : je connais maintenant la réponse finale
+       Instruction : Fournissez uniquement la réponse finale, sans afficher les étapes de réflexion ou d'action intermédiaires.
+
+       Commencez !
+       Contexte : {context}
+       Question : {question}
+       Historique : {chat_history}
+       Produits d'assurance : {products}
+       Réponse : (répondez dans la langue de la question, si la question est en Darija marocaine, répondez toujours en Darija.)
+       
+       """
+    
+        print(f"flag greeting function RAGGenerator:{is_greeting}")
+
+        # Define the prompt template with the correct variables
+        if self.is_greeting:
+           
+            # print(f"promt greeting : {message_greeting}")
+            prompt = PromptTemplate.from_template(message_greeting)
+        else:
+            #  print(f"promt rag : {message_rag}")
+             prompt = PromptTemplate.from_template(message_rag)
+
+        
+        # Pull the prompt from the hub
+        self.prompt = prompt
+
+<<<<<<< Updated upstream
+        # Initialize the language model
+        self.llm = get_llm()
+
+
+        
+        
+=======
+
+        
+>>>>>>> Stashed changes
+>>>>>>> 9ce89b7 (module)
 
     @staticmethod
     def format_docs(docs: List[str]) -> str:
