@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 class DocumentIngestionService:
     def __init__(self):
         self.vector_store = VectorStoreService()
+
         
     def ingest_documents(self, documents: List[Document]) -> int:
         """
@@ -38,6 +39,8 @@ class DocumentIngestionService:
         except Exception as e:
             logger.error(f"Error during document ingestion: {e}")
             raise
+
+    
 
     def ingest_markdowns(self) -> int:
         """
