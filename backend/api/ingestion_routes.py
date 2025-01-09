@@ -1,5 +1,5 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException
-from services.ingestion_service.document_ingestion import DocumentIngestionService
+from services.ingestion_service.document_ingestion_service import DocumentIngestionService
 from typing import List
 
 MAX_FILE_SIZE = 200 * 1024 * 1024  # 200MB
@@ -9,8 +9,8 @@ ingestion = APIRouter()
 @ingestion.get("/ingestion")
 async def get_ingestion_documents():
     ingestion_service = DocumentIngestionService()
-    documents = ingestion_service.get_ingested_documents()
-    return {"message": "Documents ingested successfully"}
+    ingested_documents = ingestion_service.get_ingested_documents()
+    return {"message": "Documents ingested successfully", "documents": ingested_documents}
 
 @ingestion.post("/ingestion")
 async def ingest_document(file: UploadFile = File(...)):

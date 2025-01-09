@@ -29,9 +29,19 @@ class VectorStoreService:
         self.store.save_local(settings.paths.faiss_index_dir)
 
     def get_documents(self):
-        return self.store.get_documents()
+        docstore = self.store.docstore
+        index_to_docstore_id = self.store.index_to_docstore_id
 
-    def add_documents(self, documents):
+        # Retrieve all documents
+        all_documents = []
+        for index, doc_id in index_to_docstore_id.items():
+            document = docstore.search(doc_id)
+            if document:
+                all_documents.append(document)
+        
+        return all_documents
+
+    def add_documents(self, documents: list[Document]):
         # Add documents to store
         print(f"Adding {len(documents)} documents to store")
         self.store.add_documents(documents)
@@ -98,6 +108,8 @@ class VectorStoreService:
 def usage():
     store = VectorStoreService()
     print("Number of documents in store:", store.count_documents())
+    
+    
 
 
 if __name__ == "__main__":
