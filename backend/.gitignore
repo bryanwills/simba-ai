@@ -5,3 +5,4 @@ __pycache__
 core/__pycache__/*
 faiss_index/
 .vscode
+**/__pycache__/
