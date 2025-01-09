@@ -6,3 +6,13 @@ core/__pycache__/*
 faiss_index/
 .vscode
 **/__pycache__/
+
+
+# Ignore everything in the folders
+data/
+# Allow the .gitkeep files
+!data/csv/.gitkeep
+!data/pdf/.gitkeep
+!data/xlsx/.gitkeep
+!data/markdown_zerox/.gitkeep
+!data/markdownOld/.gitkeep
