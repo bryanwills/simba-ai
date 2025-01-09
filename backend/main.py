@@ -5,7 +5,6 @@ from api.chat_routes import chat
 from core.utils.logger import setup_logging
 import logging
 from api.ingestion_routes import ingestion
-
 # Load environment variables from .env file
 load_dotenv()
 
