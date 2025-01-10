@@ -54,9 +54,14 @@ class VectorStoreService:
         # For other vector stores that support len()
         return len(self.store)
 
-    def delete_documents(self, documents):
+    def delete_documents(self, uids: list[str]):
         # Delete documents from store
-        self.store.delete_documents(documents)
+        try:
+            self.store.delete(uids)
+            self.save()
+        except Exception as e:
+            logger.error(f"Error deleting documents {uids}: {e}")
+            raise e
 
     def search(self, query, **kwargs):
         # Search for similar documents

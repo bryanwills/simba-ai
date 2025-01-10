@@ -1,28 +1,56 @@
 import logging
+import io
 from pathlib import Path
 from typing import List, Optional
-from fastapi import UploadFile
 from langchain.schema import Document
 from core.config import settings
-from services.vector_store_service import VectorStoreService
 import os 
-from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pydantic import BaseModel
-
+from fastapi import UploadFile
+from langchain_community.document_loaders import (
+    UnstructuredMarkdownLoader,
+    UnstructuredPDFLoader,
+    UnstructuredPowerPointLoader,
+    UnstructuredExcelLoader,
+    UnstructuredWordDocumentLoader,
+)
+from services.vector_store_service import VectorStoreService
+import tempfile
+from services.ingestion_service.utils import get_file_size_mb
 logger = logging.getLogger(__name__)
 
 class IngestedDocument(BaseModel):
     id: str
-    file_path: str
     page_content: str
     metadata: dict
 
 class DocumentIngestionService:
+
+    SUPPORTED_EXTENSIONS = {
+        ".md": UnstructuredMarkdownLoader,
+        ".pdf": UnstructuredPDFLoader,
+        ".pptx": UnstructuredPowerPointLoader,
+        ".xlsx": UnstructuredExcelLoader,
+        ".docx": UnstructuredWordDocumentLoader,
+    }
+
+
     def __init__(self):
         self.vector_store = VectorStoreService()
 
-    def get_ingested_documents(self):
+    def delete_ingested_document(self, uid: str):
+        try:
+            self.vector_store.delete_documents([uid])
+            count = self.vector_store.count_documents()
+            logger.info(f"Document {uid} deleted successfully")
+            return count
+            
+        except Exception as e:
+            logger.error(f"Error deleting document {uid}: {e}")
+            raise e
+
+    def get_ingested_documents(self) -> dict:
         #this function should return documents from the vector store
         #it should be loaded in a format that can be used by the frontend 
         #we should store the document in raw format and also in the vector store 
@@ -34,11 +62,11 @@ class DocumentIngestionService:
         for doc in all_documents:
             doc_id = doc.id
             file_path = doc.metadata['source']
+            filename = doc.metadata['filename'] if 'filename' in doc.metadata else "None"
             page_content = doc.page_content
             metadata = doc.metadata
             documents_dict[doc_id] = IngestedDocument(
                 id=doc_id,
-                file_path=file_path,
                 page_content=page_content,
                 metadata=metadata
             )
@@ -47,7 +75,7 @@ class DocumentIngestionService:
             
 
     
-    def ingest_documents(self, documents: List[Document]) -> int:
+    def ingest_document(self, file: UploadFile):
         """
         Process and ingest documents into the vector store.
         
@@ -58,22 +86,37 @@ class DocumentIngestionService:
             int: Number of documents successfully ingested
         """
         try:
-            logger.info(f"Starting ingestion of {len(documents)} documents")
+            logger.info(f"Starting ingestion of {file.filename}")
+            file_extension = f".{file.filename.split('.')[-1].lower()}" 
+            loader = self.SUPPORTED_EXTENSIONS[file_extension]
+            # Créer un fichier temporaire
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file.write(file.file.read())
+                temp_path = temp_file.name
+
+            try:
+                document = loader(temp_path).load()
+                document[0].metadata['filename'] = file.filename
+                document[0].metadata['type'] = file.content_type
+                file_size_mb = get_file_size_mb(file)
+                document[0].metadata['size'] = file_size_mb
+            finally:
+                # Nettoyer le fichier temporaire
+                os.unlink(temp_path)
             
-            # Add to vector store
-            self.vector_store.add_documents(documents)
-            
+
+            self.vector_store.add_documents(document)
             count = self.vector_store.count_documents()
             logger.info(f"Successfully ingested documents. Total count: {count}")
             return count
-            
         except Exception as e:
-            logger.error(f"Error during document ingestion: {e}")
-            raise
+            return {"message": "Error ingesting document"}
 
-    
 
-    def ingest_markdowns(self, from_dir: bool = True, file: Optional[UploadFile] = None) -> int:
+
+
+
+    def ingest_markdowns_from_dir(self):
         """
         Ingest all documents from a directory.
         
@@ -89,38 +132,32 @@ class DocumentIngestionService:
         Retrieve all .md files from a given folder, including subfolders.
         Returns a list of tuples containing the folder name and file path for each .md file.
         """
-        if from_dir:
-            md_files = []
 
-            for root, _, files in os.walk(settings.paths.markdown_dir):
-                folder_name = os.path.basename(root)
-                for file in files:
-                    if file.endswith(".md"):
-                        file_path = os.path.join(root, file)
-                        md_files.append((folder_name, file_path))
+        md_files = []
 
-            
-            docs = [UnstructuredMarkdownLoader(url[1]).load() for url in md_files]
-            # docs = [CustomMarkdownLoader(url[1]).load() for url in urls]
-            docs_list = [item for sublist in docs for item in sublist]
+        for root, _, files in os.walk(settings.paths.markdown_dir):
+            folder_name = os.path.basename(root)
+            for file in files:
+                if file.endswith(".md"):
+                    file_path = os.path.join(root, file)
+                    md_files.append((folder_name, file_path))
 
-            text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-                chunk_size=settings.chunking.chunk_size, chunk_overlap=settings.chunking.chunk_overlap
-            )
-            
-            doc_splits = text_splitter.split_documents(docs_list) #TODO Chunking strategy choose
-            
-            self.ingest_documents(docs_list)
         
-        elif file:
-            document_extension = f'.{file.filename.split(".")[-1]}' 
-            if document_extension == ".md": 
-                #convert file to bytes
-                file_bytes = file.file.read()
-                doc = UnstructuredMarkdownLoader(file_bytes).load()
-                self.ingest_documents(doc)
+        docs = [UnstructuredMarkdownLoader(url[1]).load() for url in md_files]
+        # docs = [CustomMarkdownLoader(url[1]).load() for url in urls]
+        docs_list = [item for sublist in docs for item in sublist]
+
+        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+            chunk_size=settings.chunking.chunk_size, chunk_overlap=settings.chunking.chunk_overlap
+        )
+        
+        doc_splits = text_splitter.split_documents(docs_list) #TODO Chunking strategy choose
+        
+        self.ingest_documents(docs_list)
+        
+        
 
 if __name__ == "__main__":
     document_ingestion_service = DocumentIngestionService()
-    print(document_ingestion_service.get_all_documents())
+
 
