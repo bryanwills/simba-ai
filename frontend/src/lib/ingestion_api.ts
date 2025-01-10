@@ -1,4 +1,5 @@
 import { config } from '@/config';
+import { DocumentType } from '@/types/document';
 
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 const ALLOWED_FILE_TYPES = [
@@ -16,6 +17,11 @@ interface ValidationResult {
 
 interface IngestionResponse {
   message: string;
+}
+
+interface GetDocumentsResponse {
+  message: string;
+  documents: Record<string, DocumentType>;
 }
 
 export const ingestionApi = {
@@ -37,7 +43,7 @@ export const ingestionApi = {
     return { isValid: true };
   },
 
-  uploadDocument: async (file: File): Promise<IngestionResponse> => {
+  uploadDocument: async (file: File, onProgress?: (progress: number) => void): Promise<IngestionResponse> => {
     const validation = ingestionApi.validateFile(file);
     if (!validation.isValid) {
       throw new Error(validation.error);
@@ -48,12 +54,12 @@ export const ingestionApi = {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       const response = await fetch(`${config.apiUrl}/ingestion`, {
         method: 'POST',
         body: formData,
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -64,11 +70,62 @@ export const ingestionApi = {
       }
 
       return response.json();
-    } catch (error: any) {
+    } catch (error:any) {
       if (error.name === 'AbortError') {
         throw new Error('Upload timeout - please try again');
       }
       throw error;
+    }
+  },
+
+  getDocuments: async (): Promise<DocumentType[]> => {
+    const response = await fetch(`${config.apiUrl}/ingestion`, {
+      cache: 'no-cache',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch documents');
+    }
+    
+    const data = await response.json();
+    if (!data || Object.keys(data).length === 0) return [];
+    
+    return Object.entries(data).map(([id, doc]: [string, any]) => ({
+      id,
+      name: doc.metadata.filename || 'Unknown',
+      type: doc.metadata.type || 'Unknown',
+      size: (doc.metadata.size || 0) + " MB",
+      uploadedAt: new Date().toLocaleDateString(),
+    }));
+  },
+
+  deleteDocument: async (uid: string): Promise<IngestionResponse> => {
+    // Demander confirmation à l'utilisateur
+    const isConfirmed = window.confirm('Are you sure you want to delete this document?');
+    
+    if (!isConfirmed) {
+      throw new Error('Delete cancelled by user');
+    }
+
+    try {
+      const response = await fetch(`${config.apiUrl}/ingestion?uid=${uid}`, {
+        method: 'DELETE',
+        headers: {
+          'accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || 'Delete failed');
+      }
+
+      return response.json();
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to delete document');
     }
   },
 };

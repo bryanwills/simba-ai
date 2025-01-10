@@ -4,6 +4,14 @@ export interface DocumentType {
   type: string;
   size: string;
   uploadedAt: string;
+  page_content: string;
+  file_path: string;
+  metadata: {
+    source: string;
+    filename: string;
+    type: string;
+    size: string;
+  };
 }
 
 export interface DocumentStatsType {

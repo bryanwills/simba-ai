@@ -14,7 +14,8 @@ poetry install
 poetry run uvicorn main:app --reload
 ```
 
-
+#TODO:
+Add libheif to docker 
 
 
 ## API Endpoints
