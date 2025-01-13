@@ -1,8 +1,8 @@
 
 import json
 from fastapi import APIRouter,Body
-from services.classes.state_class import State
-from services.flow_graph import graph
+from services.agentic_worflow_service.state import State
+from services.agentic_worflow_service.graph import graph
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 
@@ -46,21 +46,7 @@ async def invoke_graph(query: Query = Body(...)):
                 event_type = event.get("event")
                 key=metadata.get("langgraph_node")
 
-                # Only stream for specific nodes
-                allowed_nodes = ["generate","transform_query"]
-                if key not in allowed_nodes:
-                    continue
-                
-
-                if event_type == "on_chat_model_start":      
-                    yield json.dumps({
-                        "status": "start",
-                        "node": key,
-                        "details": "Node stream started"
-                    }) + "\n"
-                    
-                # Emit raw data for the streaming events
-                elif event_type == "on_chat_model_stream":
+                if event_type == "on_chat_model_stream":
                     chunk = event["data"]["chunk"].content  
                     
                    
@@ -75,20 +61,7 @@ async def invoke_graph(query: Query = Body(...)):
                             buffer = ""
                         else:
                             yield chunk
-                        
 
-                # Emit end of the node stream as a JSON object
-                elif event_type == "on_chat_model_end":
-                    yield json.dumps({
-                        "status": "end",
-                        "node": key,
-                        "details": "Node stream ended"
-                    }) + "\n"
-                    
-                
-                # if event["event"] == "on_chat_model_stream":
-                #     chunk = event["data"]["chunk"].content
-                #     yield chunk
            
         except Exception as e:
             yield f"Error: {str(e)}"
