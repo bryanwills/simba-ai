@@ -9,7 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from langchain_core.prompts import PromptTemplate
 from langchain import hub
-from services.agents.retrieval_agent import Retrieval
+from services.migibot.retrieval_agent import Retrieval
 
 # Pydantic model for input data validation
 class GenerationInput(BaseModel):
