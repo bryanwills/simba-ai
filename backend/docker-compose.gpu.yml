@@ -2,26 +2,18 @@ version: '3.9'
 
 services:
   ollama:
-    image: ollama/ollama
+    image: ollama/ollama:latest
+    container_name: ollama
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
-    volumes:
-      - ollama:/root/.ollama
-      - ./config.yaml:/app/config.yaml:ro
-      - ./install_llm.sh:/app/install_llm.sh:ro
-    entrypoint: ["/bin/bash", "/app/install_llm.sh"]
     ports:
       - "11434:11434"
     networks:
-      simba_network:
-        aliases:
-          - ollama
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - simba_network
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
     deploy:
       resources:
         reservations:
@@ -45,18 +37,15 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - DEVICE=cuda
     volumes:
+      - .:/app:rw  # Mount entire directory for development
       - ./uploads:/app/uploads:rw
       - ./markdown:/app/markdown:rw
       - ./vector_stores:/app/vector_stores:rw
     depends_on:
-      ollama:
-        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      simba_network:
-        aliases:
-          - backend
+      - simba_network
     restart: unless-stopped
     security_opt:
       - no-new-privileges
@@ -79,18 +68,15 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - DEVICE=cuda
     volumes:
+      - .:/app:rw  # Mount entire directory for development
       - ./uploads:/app/uploads:rw
       - ./markdown:/app/markdown:rw
       - ./vector_stores:/app/vector_stores:rw
     depends_on:
-      ollama:
-        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      simba_network:
-        aliases:
-          - celery
+      - simba_network
     restart: on-failure
     security_opt:
       - no-new-privileges
@@ -103,9 +89,7 @@ services:
     ports:
       - "6379:6379"
     networks:
-      simba_network:
-        aliases:
-          - redis
+      - simba_network
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -121,14 +105,9 @@ networks:
   simba_network:
     name: simba_network
     driver: bridge
-    labels:
-      com.docker.compose.network: simba_network
-      com.docker.compose.project: simba_backend
 
 volumes:
   redis_data:
-    name: simba_redis_data
     driver: local
-  ollama:
-    name: ollama
+  ollama_data:
     driver: local 
