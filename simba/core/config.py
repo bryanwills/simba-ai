@@ -33,12 +33,14 @@ critical_env_vars = {
 
 # Add MinIO settings if storage provider is minio
 if os.getenv("STORAGE_PROVIDER", "local").lower() == "minio":
-    critical_env_vars.update({
-        "MINIO_ENDPOINT": os.getenv("MINIO_ENDPOINT"),
-        "MINIO_ACCESS_KEY": os.getenv("MINIO_ACCESS_KEY"),
-        "MINIO_SECRET_KEY": os.getenv("MINIO_SECRET_KEY"),
-        "MINIO_BUCKET": os.getenv("MINIO_BUCKET"),
-    })
+    critical_env_vars.update(
+        {
+            "MINIO_ENDPOINT": os.getenv("MINIO_ENDPOINT"),
+            "MINIO_ACCESS_KEY": os.getenv("MINIO_ACCESS_KEY"),
+            "MINIO_SECRET_KEY": os.getenv("MINIO_SECRET_KEY"),
+            "MINIO_BUCKET": os.getenv("MINIO_BUCKET"),
+        }
+    )
 
 for var_name, var_value in critical_env_vars.items():
     if var_value:
@@ -155,39 +157,28 @@ class CelerySettings(BaseModel):
 
 class StorageSettings(BaseSettings):
     """Storage configuration settings"""
-    provider: str = Field(
-        default="local",
-        description="Storage provider type: 'local' or 'minio'"
-    )
+
+    provider: str = Field(default="local", description="Storage provider type: 'local' or 'minio'")
     minio_endpoint: Optional[str] = Field(
-        default=None,
-        description="MinIO server endpoint",
-        env="MINIO_ENDPOINT"
+        default=None, description="MinIO server endpoint", env="MINIO_ENDPOINT"
     )
     minio_access_key: Optional[str] = Field(
-        default=None,
-        description="MinIO access key",
-        env="MINIO_ACCESS_KEY"
+        default=None, description="MinIO access key", env="MINIO_ACCESS_KEY"
     )
     minio_secret_key: Optional[str] = Field(
-        default=None,
-        description="MinIO secret key",
-        env="MINIO_SECRET_KEY"
+        default=None, description="MinIO secret key", env="MINIO_SECRET_KEY"
     )
     minio_bucket: Optional[str] = Field(
-        default=None,
-        description="MinIO bucket name",
-        env="MINIO_BUCKET"
+        default=None, description="MinIO bucket name", env="MINIO_BUCKET"
     )
     minio_secure: bool = Field(
-        default=False,
-        description="Whether to use HTTPS for MinIO",
-        env="MINIO_SECURE"
+        default=False, description="Whether to use HTTPS for MinIO", env="MINIO_SECURE"
     )
 
 
 class Settings(BaseSettings):
     """Application settings"""
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     project: ProjectConfig = Field(default_factory=ProjectConfig)
