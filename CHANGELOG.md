@@ -1,5 +1,86 @@
 # Changelog
 
+## [0.5.0](https://github.com/bryanwills/simba-ai/compare/v0.4.0...v0.5.0) (2025-03-31)
+
+
+### ✨ Features
+
+* add framer motion ([9ef44b3](https://github.com/bryanwills/simba-ai/commit/9ef44b39ff2aab06cfc1bceb0d359acbc7554545))
+* Add MinIO storage provider ([c1aaed3](https://github.com/bryanwills/simba-ai/commit/c1aaed320244a2c336b67a3467bc3a0d78134ba0))
+* add Mistral OCR integration with image support ([dc1315f](https://github.com/bryanwills/simba-ai/commit/dc1315f941d12be2a3839d56906a2f0ebdcc709b))
+* add sources in chat ui frame ([47b8847](https://github.com/bryanwills/simba-ai/commit/47b8847eb379aceb4f8c1630315a6a1d4a8b91b4))
+* added clear_store & clean_index ([19fc88c](https://github.com/bryanwills/simba-ai/commit/19fc88c22c5a0cf58e5180a16e038a7e3040e0b7))
+* adding embeddingManager in simba-client ([0376b70](https://github.com/bryanwills/simba-ai/commit/0376b7049f56ea7289e586bfeaaa999416735d34))
+* document preview ([7dc5d5e](https://github.com/bryanwills/simba-ai/commit/7dc5d5ecf459b9f3d47935819be1187ab4407c7b))
+* folder creation ([1101214](https://github.com/bryanwills/simba-ai/commit/11012148309318ae6cb37586ba8e13cf35885060))
+* handle multiple documents edit / delete / parse ([310165e](https://github.com/bryanwills/simba-ai/commit/310165ece7d40e1b0d35103a0a2cade0d03a3e3c))
+* implement close chat functionality and update frontend design ([96e94bf](https://github.com/bryanwills/simba-ai/commit/96e94bffda13b1c208ea45f1e916e27c84e66728))
+* implement storage provider architecture (Local Only) ([b76f1c7](https://github.com/bryanwills/simba-ai/commit/b76f1c78ec59e0cb2bd9539d131cf29d45c3fbcf))
+* ingesting with celery & multiple delete ([0cb4315](https://github.com/bryanwills/simba-ai/commit/0cb4315a2b338b4ac0e2c9618a524af6f7fc0743))
+* ingestion working with celery ([e9eea7d](https://github.com/bryanwills/simba-ai/commit/e9eea7db8d5f4836668d22dc50a8fb3bcd15a7aa))
+* MinIO storage ([77a63b7](https://github.com/bryanwills/simba-ai/commit/77a63b7cd82cb65d3478423b34047b9a6c84dbf2))
+* refacto retrieval, added abstract class and modulari ([684d51b](https://github.com/bryanwills/simba-ai/commit/684d51b897d0d84e0cd66d22914eecaefed1caa0))
+* Refactor embedding and parsing services with new EmbeddingService ([b6ef53c](https://github.com/bryanwills/simba-ai/commit/b6ef53c1d9f1041e00671ffa369b4e1d5bc716e6))
+* retriever is now in simba-sdk ([63ce7db](https://github.com/bryanwills/simba-ai/commit/63ce7db44076d4cb10ad02a9c8333c1f78e7f793))
+* retriever.retreive ([05edc21](https://github.com/bryanwills/simba-ai/commit/05edc2144df8769d907b6fa74de0bfd940429d0b))
+* sdk ([c1cb8fe](https://github.com/bryanwills/simba-ai/commit/c1cb8fe7fe4c0438815f06acb8fe50e5a808f2b6))
+* simba-client is now pip install package ([3daa459](https://github.com/bryanwills/simba-ai/commit/3daa459edf81bdb7bd77c24101445c64a2e014be))
+* simba-sdk ([9482997](https://github.com/bryanwills/simba-ai/commit/94829978b8c8c044a14b068de1a42d0eb69eaa35))
+* simba-sdk document ingestion ([a6f4988](https://github.com/bryanwills/simba-ai/commit/a6f49885a1f9ce14a350db9854b932710a40112d))
+* UX multiple document parsing & enabling ([13fbd39](https://github.com/bryanwills/simba-ai/commit/13fbd39db4362eddbc67eac249fb63ff36d75d59))
+
+
+### 🐛 Bug Fixes
+
+* change color of folder ([3627a8b](https://github.com/bryanwills/simba-ai/commit/3627a8bffa1df4ed52e24d945f535ce4bc9b255f))
+* ci auth ([63d6f4e](https://github.com/bryanwills/simba-ai/commit/63d6f4ef2cd0ca00a790bfa59128ac39a64ae750))
+* ci relase draft ([b6c9457](https://github.com/bryanwills/simba-ai/commit/b6c94574d5d3519e25fcb7a54298344cb7240d0e))
+* deleted temp file minio ([a868f37](https://github.com/bryanwills/simba-ai/commit/a868f373363da35e1024cbbc6ddfce94fa32f724))
+* doc preview with latin-1 ([cf2292d](https://github.com/bryanwills/simba-ai/commit/cf2292db54805bb9bbd2b45b732bd3217f546fc6))
+* docker integration & add CI ([660447d](https://github.com/bryanwills/simba-ai/commit/660447df6cef3d3dad6bee0aa5d0e050b7146ad6))
+* fix multiple document delete ([b080786](https://github.com/bryanwills/simba-ai/commit/b0807869bbddf48c883eced0320aa5df3cbc605e))
+* fix retrieve documents returns langchain Document ([fa93fc0](https://github.com/bryanwills/simba-ai/commit/fa93fc0e40af941cdce3bec7a0fd460dd25983bf))
+* force deleting & markdown preview ([d9e5b69](https://github.com/bryanwills/simba-ai/commit/d9e5b69be2c932bd352a033390852987dfc2f69d))
+* mistral ocr result embedding are removable & images are kept in UI ([c4f10c5](https://github.com/bryanwills/simba-ai/commit/c4f10c5ff0901602a46c2df36be91585e284758c))
+* modify kwargs in as_retriver function ([bcec99d](https://github.com/bryanwills/simba-ai/commit/bcec99daa01e9096817e5ec7602ee628919f92c4))
+* parser keeps file inside folder & same for delete ([7080762](https://github.com/bryanwills/simba-ai/commit/7080762878445134a67ab1fd581a433a3f301864))
+* release-please file and ci ([d82c6c5](https://github.com/bryanwills/simba-ai/commit/d82c6c5591ca6ce2249e85f9714443f18dde2e1a))
+* release-please hot fix ([5d2e643](https://github.com/bryanwills/simba-ai/commit/5d2e643427d6b314208e41f8ab518dd3229e4b06))
+* release-please hot fix ([e11487c](https://github.com/bryanwills/simba-ai/commit/e11487c7f37a605f040bd625b918d42ea4adc584))
+* Simplify embedding processing and remove multimodal embedding components & Mistral_ocr is removable ([aa2ffdb](https://github.com/bryanwills/simba-ai/commit/aa2ffdb100f7def1d499b77ccd4c2ba660ce018e))
+* update storage provider and enhance frontend dependencies ([4749723](https://github.com/bryanwills/simba-ai/commit/47497231057630403ff9917239787df5749fe6c5))
+
+
+### 📚 Documentation
+
+* add sdk quickstart in the readme ([b5478af](https://github.com/bryanwills/simba-ai/commit/b5478af1331ffa7c8c8841c9b1eb63938b900904))
+* added first draft of documentation with mintlify ([ee55cd4](https://github.com/bryanwills/simba-ai/commit/ee55cd429d6ddee1d75dd206f56d6a1fc0bcca8f))
+* changed doc structure ([44238b0](https://github.com/bryanwills/simba-ai/commit/44238b071c8e8287039610b60bc305a5ade82a53))
+* chore ([531e60b](https://github.com/bryanwills/simba-ai/commit/531e60bb6b9540fa0aeeea9b20e200280c7955eb))
+* chore ([014cb0a](https://github.com/bryanwills/simba-ai/commit/014cb0a10b4fe44d7ed0b6d57cd89eadb814dd7a))
+* cleaned installation ([111392e](https://github.com/bryanwills/simba-ai/commit/111392e4e09641d14b2321829523189f2e2736a7))
+* fix mint.json structure ([df3f1de](https://github.com/bryanwills/simba-ai/commit/df3f1de326d48668ebfff1e1173a7450a31eaa5a))
+* fix mint.json structure ([756d657](https://github.com/bryanwills/simba-ai/commit/756d65761b23992266cb396e52273ce33846d25a))
+* fix mint.json structure ([ce2aea9](https://github.com/bryanwills/simba-ai/commit/ce2aea92e552386bf455a3507727768a4974f228))
+* fix mint.json structure ([d77cefd](https://github.com/bryanwills/simba-ai/commit/d77cefd948ba32534081dad98a239c608efea7f9))
+* fixed icons rendering ([5e8424e](https://github.com/bryanwills/simba-ai/commit/5e8424ecfa01aa22a8f0cada33cb37f4118f00d2))
+* introduction & installation setup ([1ab8049](https://github.com/bryanwills/simba-ai/commit/1ab8049555faae7bb7486b9c94baa2d93a01b049))
+* remove config ([c0700a0](https://github.com/bryanwills/simba-ai/commit/c0700a0c9a859b743c4aea974756e777025495fa))
+* removed useless doc ([815dcec](https://github.com/bryanwills/simba-ai/commit/815dcec83ce41a4a110cc33ef666e17288fc09dc))
+* update introduction ([2fb67cc](https://github.com/bryanwills/simba-ai/commit/2fb67cc661d8b1efd7d5e0f24704fd8e361eb012))
+* update introduction & assets ([187c1a5](https://github.com/bryanwills/simba-ai/commit/187c1a53c52a7f68608e8fc36be9b67bf770f817))
+* update structure and added getting started ([7e60063](https://github.com/bryanwills/simba-ai/commit/7e600632c796f2f3fdcf75d272571b9bae262f73))
+
+
+### 🚦 Continuous Integration
+
+* added release-please ([ed4c061](https://github.com/bryanwills/simba-ai/commit/ed4c061e447c82d61a7d402ec9fff3fccdd03d1b))
+
+
+### 💎 Style
+
+* adding parser badge inside document list ([8fd15b0](https://github.com/bryanwills/simba-ai/commit/8fd15b063990af68b0594b665b616585a4f663dd))
+
 ## [0.4.0](https://github.com/GitHamza0206/simba/compare/v0.3.0...v0.4.0) (2025-03-11)
 
 
